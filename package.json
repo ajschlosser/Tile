@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "gulp": "gulp --gulpfile gulpfile.js"
+  },
+  "devDependencies": {
+    "async": "^0.9.0",
+    "event-stream": "^3.3.0",
+    "gulp": "^3.8.11",
+    "gulp-concat": "^2.5.2",
+    "gulp-jshint": "^1.10.0",
+    "gulp-less": "^3.0.2",
+    "gulp-watch": "^4.2.2",
+    "jshint-stylish": "^1.0.1"
+  }
+}
