@@ -10,14 +10,14 @@ var gulp = require('gulp'),
 gulp.task('vendors', function(){
 	var sources = [],
 		maps = [],
-		path = conf.paths.vendors.src;
-	if (!conf.paths.vendors.sources.length) {
+		path = conf.vendors.src;
+	if (!conf.vendors.sources.length) {
 		return
 	}
 	console.info('Processing...');
 	async.parallel({
 		vendors: function(completed) {
-			async.each(conf.paths.vendors.sources, function(source, done) {
+			async.each(conf.vendors.sources, function(source, done) {
 				console.info('\t...%s', source);
 				sources.push(path + source);
 				done();
@@ -30,7 +30,7 @@ gulp.task('vendors', function(){
 			});
 		},
 		maps: function(completed) {
-			async.each(conf.paths.vendors.maps, function(map, done) {
+			async.each(conf.vendors.maps, function(map, done) {
 				console.info('\t...%s', map);
 				maps.push(path + map);
 				done();
@@ -50,7 +50,7 @@ gulp.task('vendors', function(){
 			return es.merge(
 				gulp.src(sources).pipe(concat('vendors.js')),
 				gulp.src(maps))
-				.pipe(gulp.dest(conf.paths.vendors.dist))
+				.pipe(gulp.dest(conf.vendors.dist))
 		}
 	});
 
@@ -58,29 +58,29 @@ gulp.task('vendors', function(){
 });
 
 gulp.task('scripts', function(){
-	return gulp.src(conf.paths.scripts.src)
+	return gulp.src(conf.scripts.src)
 		.pipe(jshint())
 		.pipe(jshint.reporter(stylish))
-		.pipe(concat('game.js'))
-		.pipe(gulp.dest(conf.paths.scripts.dist));
+		.pipe(concat(conf.scripts.name))
+		.pipe(gulp.dest(conf.scripts.dist));
 });
 
 gulp.task('styles', function(){
-	return gulp.src(conf.paths.styles.src)
-		.pipe(less({paths: conf.paths.styles.src}))
-		.pipe(concat('app.css'))
-		.pipe(gulp.dest(conf.paths.styles.dist));
+	return gulp.src(conf.styles.src)
+		.pipe(less({paths: conf.styles.src}))
+		.pipe(concat(conf.styles.name))
+		.pipe(gulp.dest(conf.styles.dist));
 });
 
 gulp.task('templates', function(){
-	return gulp.src(conf.paths.templates.src)
-		.pipe(gulp.dest(conf.paths.templates.dist));
+	return gulp.src(conf.templates.src)
+		.pipe(gulp.dest(conf.templates.dist));
 });
 
 gulp.task('default', ['vendors'], function(){
-	gulp.watch(conf.paths.templates.src, ['templates']);
-	gulp.watch(conf.paths.styles.src, ['styles']);
-	gulp.watch([conf.paths.scripts.src, '!gulpfile.js'], ['scripts']);
+	gulp.watch(conf.templates.src, ['templates']);
+	gulp.watch(conf.styles.src, ['styles']);
+	gulp.watch([conf.scripts.src, '!gulpfile.js'], ['scripts']);
 	setTimeout(function() {
 		console.info('Watching for changes...');
 	},200);
