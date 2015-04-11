@@ -1,8 +1,7 @@
 (function(Tile, undefined){
 
-Tile.async = {};
-
-Tile.async.each = function (arr, iterator, callback) {
+Tile.async = {
+	each: function (arr, iterator, callback) {
 		function only_once(fn) {
 			var called = false;
 			return function() {
@@ -11,7 +10,7 @@ Tile.async.each = function (arr, iterator, callback) {
 				fn.apply(this, arguments);
 			};
 		}
-		callback = callback || function () {};
+		callback = callback || function() {};
 		if (!arr.length) {
 			return callback();
 		}
@@ -22,7 +21,7 @@ Tile.async.each = function (arr, iterator, callback) {
 		function done(err) {
 			if (err) {
 				callback(err);
-				callback = function () {};
+				callback = function() {};
 			}
 			else {
 				completed += 1;
@@ -31,6 +30,23 @@ Tile.async.each = function (arr, iterator, callback) {
 				}
 			}
 		}
+	},
+	parallel: function(tasks, callback) {
+		callback = callback || function() {};
+		var results = {};
+		this.each(Object.getOwnPropertyNames(tasks), function(task, callback) {
+			tasks[task](function(err) {
+				var args = Array.prototype.slice.call(arguments, 1);
+				if (args.length <= 1) {
+					args = args[0];
+				}
+				results[task] = args;
+				callback(err);
+			});
+		}, function(err) {
+			callback(err, results);
+		});
+	}
 };
 Tile.Obj = {
 	create: function(params) {
@@ -64,6 +80,7 @@ Tile.World = {
 			w = params.w / tilesize || 40,
 			h = params.h / tilesize || 30,
 			tiles = { 0: [] },
+			events = { click: [] },
 			actions = { '*': {} };
 		for (var x = 0; x < w; x++) {
 			for (var y = 0; y < h; y++) {
@@ -105,7 +122,7 @@ Tile.World = {
 			put: function(tile) {
 				tiles[tile.z()].push(tile);
 			},
-			act: function(params) {
+			action: function(params) {
 				var name = params.name,
 					action = params.action,
 					types = params.types || [],
@@ -120,13 +137,22 @@ Tile.World = {
 						if (!actions[type]) {
 							actions[type] = {};
 						}
-						actions[type][name] = action;
+						actions[type][name] = {
+							run: action,
+							types: function() { return types; },
+							events: function() { return events; }
+						};
 					});
 				} else {
-					actions['*'][name] = action;
+					actions['*'][name] = {
+						run: action,
+						types: function() { return types; },
+						events: function() { return events; }
+					};
 				}
 			},
 			actions: function() { return actions; },
+			events: function() { return events; },
 			render: function(canvas, z) {
 				z = z || 0;
 				var objs = tiles[z];
@@ -137,10 +163,29 @@ Tile.World = {
 				});
 				Tile.async.each(objs, function(obj){
 					Tile.async.each(obj.actions(), function(name){
-						if (actions[obj.type()] && actions[obj.type()][name]) {
-							actions[obj.type()][name](obj);
-						} else if (actions['*'][name]) {
-							actions['*'][name](obj);
+						function run(a) {
+							if (a.events().length) {
+								var x = obj.x(),
+									y = obj.y();
+								Tile.async.each(a.events(), function(event){
+									for (var i = 0; i < events[event].length; i++) {
+										var e = events[event][i];
+										if (e.x === x && e.y === y) {
+											events[event].splice(i, 1);
+											a.run(obj);
+										}
+									}
+								});
+							} else {
+								a.run(obj);
+							}
+						}
+						var type = actions[obj.type()],
+							any = actions['*'][name];
+						if (type && type[name]) {
+							run(type[name]);
+						} else if (any) {
+							run(any);
 						}
 					});
 				});
@@ -157,6 +202,7 @@ Tile.Canvas = {
 			context = canvas.getContext('2d'),
 			world = params.world || Tile.World.create(),
 			sprites = {},
+			clicks = [],
 			fps = params.fps || 60,
 			tilesize;
 		Tile.async.each(params.sprites, function(sprite){
@@ -166,9 +212,10 @@ Tile.Canvas = {
 		canvas.height = params.h || 0;
 		container.appendChild(canvas);
 		canvas.addEventListener('click', function(evt){
-			var x = Math.floor(evt.offsetX / tilesize),
-				y = Math.floor(evt.offsetY / tilesize);
-			console.log(world.tile(x,y));
+			world.events().click.push({
+				x: Math.floor(evt.offsetX / tilesize),
+				y: Math.floor(evt.offsetY / tilesize)
+			});
 		});
 		return {
 			w: function() { return w; },
@@ -279,13 +326,12 @@ var game = Tile.Canvas.create({
 	sprites: [grass, water],
 	run: true
 });
-game.world().act({
+game.world().action({
 	name: 'gonuts',
+	types: ['water'],
+	events: ['click'],
 	action: function(obj){
-		if (obj.x() === 1 && obj.y() === 1) {
-			console.log(obj);
-		}
-	},
-	types: ['grass']
+		console.log(obj);
+	}
 });
 game.run();
