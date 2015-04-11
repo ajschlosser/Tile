@@ -53,7 +53,7 @@ Tile.Obj = {
 			do: function(action) { actions.push(action); },
 			actions: function() { return actions; },
 			type: function(t) { if (typeof t === 'string') type = t; else return type; },
-			coords: function() { return [x, y, z]; },
+			coords: function(x, y) { if (Number.isInteger(x) && Number.isInteger(y)) { x = x; y = y; } else return [x, y, z]; },
 		};
 	}
 };
@@ -113,10 +113,13 @@ Tile.World = {
 				z = z || 0;
 				var objs = tiles[z];
 				Tile.async.each(objs, function(obj){
-					canvas.draw(obj);
+					if (obj.visible()) {
+						canvas.draw(obj);
+					}
 				});
 				Tile.async.each(objs, function(obj){
 					Tile.async.each(obj.actions(), function(name){
+						actions[name](obj);
 					});
 				});
 			}
@@ -140,6 +143,11 @@ Tile.Canvas = {
 		canvas.width = params.w || 0;
 		canvas.height = params.h || 0;
 		container.appendChild(canvas);
+		canvas.addEventListener('click', function(evt){
+			var x = Math.floor(evt.offsetX / tilesize),
+				y = Math.floor(evt.offsetY / tilesize);
+			console.log(world.tile(x,y));
+		});
 		return {
 			w: function() { return w; },
 			h: function() { return h; },
@@ -181,6 +189,7 @@ Tile.Canvas = {
 					});
 				}
 			},
+			world: function() { return world; },
 			clear: function() {
 				context.clearRect(0, 0, canvas.width, canvas.height);
 			},
@@ -248,9 +257,8 @@ var game = Tile.Canvas.create({
 	sprites: [grass, water],
 	run: true
 });
-var world = Tile.World.create();
-world.act('gonuts', function(obj){
-	if (obj.x() === 0 && obj.y() === 0) {
+game.world().act('gonuts', function(obj){
+	if (obj.x() === 1 && obj.y() === 1) {
 		console.log(obj);
 	}
 });
