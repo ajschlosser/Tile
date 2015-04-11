@@ -64,7 +64,7 @@ Tile.World = {
 			w = params.w / tilesize || 40,
 			h = params.h / tilesize || 30,
 			tiles = { 0: [] },
-			actions = {};
+			actions = { '*': {} };
 		for (var x = 0; x < w; x++) {
 			for (var y = 0; y < h; y++) {
 				var tile = Tile.Obj.create({
@@ -105,8 +105,26 @@ Tile.World = {
 			put: function(tile) {
 				tiles[tile.z()].push(tile);
 			},
-			act: function(name, action) {
-				this.actions()[name] = action;
+			act: function(params) {
+				var name = params.name,
+					action = params.action,
+					types = params.types || [],
+					events = params.events;
+				if (!name) {
+					throw new Error('Actions require a name');
+				} else if (typeof action !== 'function') {
+					throw new Error('The ' + name + ' action needs to be a function');
+				}
+				if (types && types.length) {
+					Tile.async.each(types, function(type){
+						if (!actions[type]) {
+							actions[type] = {};
+						}
+						actions[type][name] = action;
+					});
+				} else {
+					actions['*'][name] = action;
+				}
 			},
 			actions: function() { return actions; },
 			render: function(canvas, z) {
@@ -119,7 +137,11 @@ Tile.World = {
 				});
 				Tile.async.each(objs, function(obj){
 					Tile.async.each(obj.actions(), function(name){
-						actions[name](obj);
+						if (actions[obj.type()] && actions[obj.type()][name]) {
+							actions[obj.type()][name](obj);
+						} else if (actions['*'][name]) {
+							actions['*'][name](obj);
+						}
 					});
 				});
 			}
@@ -257,9 +279,13 @@ var game = Tile.Canvas.create({
 	sprites: [grass, water],
 	run: true
 });
-game.world().act('gonuts', function(obj){
-	if (obj.x() === 1 && obj.y() === 1) {
-		console.log(obj);
-	}
+game.world().act({
+	name: 'gonuts',
+	action: function(obj){
+		if (obj.x() === 1 && obj.y() === 1) {
+			console.log(obj);
+		}
+	},
+	types: ['grass']
 });
 game.run();
