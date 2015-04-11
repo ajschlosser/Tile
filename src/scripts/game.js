@@ -57,7 +57,8 @@ Tile.Obj = {
 			type = params.type,
 			sprite = params.sprite,
 			visible = (params.visible === true || params.visible === false) ? params.visible : true,
-			actions = params.actions || [];
+			actions = params.actions || [],
+			properties = params.properties || {};
 		return {
 			sprite: function() { return sprite; },
 			visible: function() { return visible; },
@@ -68,6 +69,7 @@ Tile.Obj = {
 			z: function(i) { if (Number.isInteger(i)) z = i; else return z; },
 			do: function(action) { actions.push(action); },
 			actions: function() { return actions; },
+			properties: function() { return properties; },
 			type: function(t) { if (typeof t === 'string') type = t; else return type; },
 			coords: function(x, y) { if (Number.isInteger(x) && Number.isInteger(y)) { x = x; y = y; } else return [x, y, z]; },
 		};
@@ -80,20 +82,11 @@ Tile.World = {
 			w = params.w / tilesize || 40,
 			h = params.h / tilesize || 30,
 			tiles = { 0: [] },
-			events = { click: [] },
+			events = { click: [], dblclick: [] },
 			actions = { '*': {} };
-		for (var x = 0; x < w; x++) {
-			for (var y = 0; y < h; y++) {
-				var tile = Tile.Obj.create({
-					x: x,
-					y: y,
-					type: Math.random()*100 < 95 ? 'grass' : 'water',
-					actions: ['gonuts']
-				});
-				tiles[0].push(tile);
-			}
-		}
 		return  {
+			width: function() { return w; },
+			height: function() { return h; },
 			tile: function(x, y, z) {
 				z = z || 0;
 				var ts = tiles[z],
@@ -116,17 +109,18 @@ Tile.World = {
 						}
 					}
 				}
-				throw new Error('No Tile object exists at (' + x + ', ' + y + ')');
+				return;
+				//throw new Error('No Tile object exists at (' + x + ', ' + y + ')');
 			},
 			tilesize: function(ts) { if (Number.isInteger(ts)) tilesize = ts; else return tilesize; },
 			put: function(tile) {
 				tiles[tile.z()].push(tile);
 			},
 			action: function(params) {
-				var name = params.name,
+				var name = params.name || Object.getOwnPropertyNames(actions).length + 1,
 					action = params.action,
 					types = params.types || [],
-					events = params.events;
+					events = params.events || [];
 				if (!name) {
 					throw new Error('Actions require a name');
 				} else if (typeof action !== 'function') {
@@ -153,6 +147,23 @@ Tile.World = {
 			},
 			actions: function() { return actions; },
 			events: function() { return events; },
+			generate: function() {
+				for (var x = 0; x < w; x++) {
+					for (var y = 0; y < h; y++) {
+						var r = Math.random()*100;
+						var tile = Tile.Obj.create({
+							x: x,
+							y: y,
+							type: r < 50 ? 'grass' : 'water',
+							actions: ['wetten', 'flood', 'unflood', 'info'],
+							properties: {
+								wetness: r < 95 ? 0 : 6
+							}
+						});
+						tiles[0].push(tile);
+					}
+				}
+			},
 			render: function(canvas, z) {
 				z = z || 0;
 				var objs = tiles[z];
@@ -211,15 +222,17 @@ Tile.Canvas = {
 		canvas.width = params.w || 0;
 		canvas.height = params.h || 0;
 		container.appendChild(canvas);
-		canvas.addEventListener('click', function(evt){
-			world.events().click.push({
-				x: Math.floor(evt.offsetX / tilesize),
-				y: Math.floor(evt.offsetY / tilesize)
-			});
+		Tile.async.each(Object.getOwnPropertyNames(world.events()), function(evt) {
+			canvas.addEventListener(evt, function(e){
+				world.events()[evt].push({
+					x: Math.floor(e.offsetX / tilesize),
+					y: Math.floor(e.offsetY / tilesize)
+				});
+			});			
 		});
 		return {
-			w: function() { return w; },
-			h: function() { return h; },
+			width: function() { return canvas.width; },
+			height: function() { return canvas.width; },
 			ctx: function() {
 				return context;
 			},
@@ -228,6 +241,7 @@ Tile.Canvas = {
 			},
 			init: function(callback) {
 				var types = Object.getOwnPropertyNames(sprites);
+				world.generate();
 				Tile.async.each(types, function(type, next){
 					sprites[type].loaded(function(){
 						next();
@@ -327,11 +341,62 @@ var game = Tile.Canvas.create({
 	run: true
 });
 game.world().action({
-	name: 'gonuts',
+	name: 'wetten',
+	types: ['grass', 'water'],
+	action: function(obj){
+		if (obj.properties().wetness >= 4) {
+			obj.type('water');
+		} else {
+			obj.type('grass');
+		}
+	}
+});
+game.world().action({
+	name: 'flood',
 	types: ['water'],
+	action: function(obj){
+		if (Math.random() * 1000 > 990) {
+			var n1 = Math.random() * 2 > 1 ? 1 : -1,
+				n2 = Math.random() * 2 > 1 ? 1 : -1,
+				m1 = Math.random() * 2 > 1 ? 0 : 1,
+				m2 = Math.random() * 2 > 1 ? 0 : 1,
+				x = obj.x() + n1*m1,
+				y = obj.y() + n2*m2,
+				o = game.world().tile(x,y);
+			if (o) {
+				if (o.properties().wetness < 4) {
+					o.properties().wetness += 1;
+				}
+			}
+		}
+	}
+});
+game.world().action({
+	name: 'unflood',
+	types: ['grass'],
+	action: function(obj){
+		if (Math.random() * 1000 > 995) {
+			var n1 = Math.random() * 2 > 1 ? 1 : -1,
+				n2 = Math.random() * 2 > 1 ? 1 : -1,
+				m1 = Math.random() * 2 > 1 ? 0 : 1,
+				m2 = Math.random() * 2 > 1 ? 0 : 1,
+				x = obj.x() + n1*m1,
+				y = obj.y() + n2*m2,
+				o = game.world().tile(x,y);
+			if (o) {
+				if (o.properties().wetness >= 4) {
+					o.properties().wetness -= 1;
+				}
+			}
+		}
+	}
+});
+game.world().action({
+	name: 'info',
+	types: ['water', 'grass'],
 	events: ['click'],
 	action: function(obj){
-		console.log(obj);
+		console.log(obj.properties().wetness);
 	}
 });
 game.run();
