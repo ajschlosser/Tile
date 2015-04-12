@@ -68,33 +68,20 @@ Tile.Obj = {
 		var x = params.x,
 			y = params.y,
 			z = params.z || 0,
+			depth = params.depth || 0,
 			type = params.type,
-			sprite = params.sprite,
 			visible = (params.visible === true || params.visible === false) ? params.visible : true,
 			actions = params.actions || [],
-			properties = params.properties || {},
-			depth = params.depth || 0;
+			properties = params.properties || {};
 		return {
-			sprite: function() { return sprite; },
-			visible: function() { return visible; },
-			show: function() { visible = true; },
-			hide: function() { visible = false; },
+			visible: function(b) { if (typeof b === 'boolean') visible = b; else return visible; },
 			x: function(n) { if (Number.isInteger(n)) x = n; else return x; },
 			y: function(n) { if (Number.isInteger(n)) y = n; else return y; },
 			z: function(n) { if (Number.isInteger(n)) z = n; else return z; },
-			do: function(action) { actions.push(action); },
-			actions: function() { return actions; },
+			depth: function(n) { if (Number.isInteger(n)) depth = n; else return depth; },
+			actions: function(action) { if (typeof action === 'function') actions.push(action); else return actions; },
 			properties: function() { return properties; },
-			type: function(t) { if (typeof t === 'string') type = t; else return type; },
-			coords: function(x, y) { if (Number.isInteger(x) && Number.isInteger(y)) { x = x; y = y; } else return [x, y, z]; },
-			depth: function() { return depth; },
-			deepen: function(n) {
-				if (Number.isInteger(n) && n <= 9) {
-					depth = n;
-				} else if (!n && depth < 9) {
-					depth++;
-				}
-			}
+			type: function(t) { if (typeof t === 'string') type = t; else return type; }
 		};
 	}
 };
@@ -198,7 +185,7 @@ Tile.World = {
 							x: x,
 							y: y,
 							type: r < 90 ? 'grass' : 'water',
-							actions: ['wetten', 'flood', 'evaporate', 'info'],
+							actions: ['wetten', 'flood', 'info'],
 							depth: r < 90 ? 0 : 1,
 							properties: {
 								wetness: r < 95 ? 0 : 6
@@ -267,7 +254,7 @@ Tile.Engine = {
 			fps = params.fps || 60,
 			tilesize;
 		Tile.async.each(params.sprites, function(sprite){
-			sprites[sprite.type()] = sprite;
+			sprites[sprite.type] = Tile.Sprite.create(sprite);
 		});
 		canvas.width = params.w || 0;
 		canvas.height = params.h || 0;
@@ -393,30 +380,32 @@ Tile.Sprite = {
 
 // Game code
 
-var grass = Tile.Sprite.create({
-	src: 'art/grass.png',
-	w: 16,
-	h: 16,
-	type: 'grass'
-});
-var water = Tile.Sprite.create({
-	src: 'art/water.png',
-	w: 16,
-	h: 16,
-	type: 'water'
-});
+var sprites = [
+	{
+		src: 'art/grass.png',
+		w: 16,
+		h: 16,
+		type: 'grass'
+	},
+	{
+		src: 'art/water.png',
+		w: 16,
+		h: 16,
+		type: 'water'
+	}
+];
+
 var game = Tile.Engine.create({
 	w: 640,
 	h: 480,
-	sprites: [grass, water],
-	run: true
+	sprites: sprites
 });
+
 game.world().action({
 	name: 'wetten',
 	types: ['grass', 'water'],
 	action: function(obj){
 		if (obj.properties().wetness >= 4) {
-			//obj.deepen();
 			obj.type('water');
 		} else {
 			obj.type('grass');
@@ -431,22 +420,7 @@ game.world().action({
 		if (neighbor && neighbor.depth() >= obj.depth()) {
 			if (neighbor.properties().wetness < 4) {
 				neighbor.properties().wetness += 1;
-				//neighbor.deepen();
 			}
-		}
-	}
-});
-game.world().action({
-	name: 'evaporate',
-	types: ['grass'],
-	action: function(obj){
-		if (Math.random() * 1000 > 950) {
-			// var neighbor = game.world().getRandomNeighborOf(obj);
-			// if (neighbor) {
-			// 	if (neighbor.properties().wetness >= 4) {
-			// 		neighbor.properties().wetness -= 1;
-			// 	}
-			// }
 		}
 	}
 });
@@ -455,7 +429,8 @@ game.world().action({
 	types: ['water', 'grass'],
 	events: ['click'],
 	action: function(obj){
-		obj.deepen();
+		var depth = obj.depth();
+		obj.depth(depth+1);
 		console.log(obj.properties(), obj.depth());
 	}
 });
