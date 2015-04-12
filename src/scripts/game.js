@@ -1,4 +1,11 @@
+// --------------------------------------------------
+// TILE - A 2D JAVASCRIPT TILE ENGINE
+// --------------------------------------------------
+
 (function(Tile, undefined){
+
+// --------------------------------------------------
+// ASYNC
 
 Tile.async = {
 	each: function (arr, iterator, callback) {
@@ -48,6 +55,13 @@ Tile.async = {
 		});
 	}
 };
+
+// END ASYNC
+// --------------------------------------------------
+
+// --------------------------------------------------
+// OBJ
+
 Tile.Obj = {
 	create: function(params) {
 		params = params || {};
@@ -84,6 +98,13 @@ Tile.Obj = {
 		};
 	}
 };
+
+// END OBJ
+// --------------------------------------------------
+
+// --------------------------------------------------
+// WORLD
+
 Tile.World = {
 	create: function(params) {
 		params = params || {};
@@ -226,9 +247,15 @@ Tile.World = {
 			}
 		};
 	}
-
 };
-Tile.Canvas = {
+
+// END WORLD
+// --------------------------------------------------
+
+// --------------------------------------------------
+// ENGINE
+
+Tile.Engine = {
 	create: function(params) {
 		var id = params.id || 'container',
 			container = document.getElementById(id),
@@ -323,6 +350,13 @@ Tile.Canvas = {
 		};
 	}
 };
+
+// END ENGINE
+// --------------------------------------------------
+
+// --------------------------------------------------
+// SPRITE
+
 Tile.Sprite = {
 	create: function(params) {
 		var img = new Image(),
@@ -351,6 +385,10 @@ Tile.Sprite = {
 		};
 	}
 };
+
+// END SPRITE
+// --------------------------------------------------
+
 }(window.Tile = window.Tile || {}));
 
 // Game code
@@ -367,7 +405,7 @@ var water = Tile.Sprite.create({
 	h: 16,
 	type: 'water'
 });
-var game = Tile.Canvas.create({
+var game = Tile.Engine.create({
 	w: 640,
 	h: 480,
 	sprites: [grass, water],
