@@ -58,20 +58,29 @@ Tile.Obj = {
 			sprite = params.sprite,
 			visible = (params.visible === true || params.visible === false) ? params.visible : true,
 			actions = params.actions || [],
-			properties = params.properties || {};
+			properties = params.properties || {},
+			depth = params.depth || 0;
 		return {
 			sprite: function() { return sprite; },
 			visible: function() { return visible; },
 			show: function() { visible = true; },
 			hide: function() { visible = false; },
-			x: function(i) { if (Number.isInteger(i)) x = i; else return x; },
-			y: function(i) { if (Number.isInteger(i)) y = i; else return y; },
-			z: function(i) { if (Number.isInteger(i)) z = i; else return z; },
+			x: function(n) { if (Number.isInteger(n)) x = n; else return x; },
+			y: function(n) { if (Number.isInteger(n)) y = n; else return y; },
+			z: function(n) { if (Number.isInteger(n)) z = n; else return z; },
 			do: function(action) { actions.push(action); },
 			actions: function() { return actions; },
 			properties: function() { return properties; },
 			type: function(t) { if (typeof t === 'string') type = t; else return type; },
 			coords: function(x, y) { if (Number.isInteger(x) && Number.isInteger(y)) { x = x; y = y; } else return [x, y, z]; },
+			depth: function() { return depth; },
+			deepen: function(n) {
+				if (Number.isInteger(n) && n <= 9) {
+					depth = n;
+				} else if (!n && depth < 9) {
+					depth++;
+				}
+			}
 		};
 	}
 };
@@ -147,6 +156,19 @@ Tile.World = {
 			},
 			actions: function() { return actions; },
 			events: function() { return events; },
+			getRandomNeighborOf: function(obj) {
+				var n1 = Math.random() * 2 > 1 ? 1 : -1,
+					n2 = Math.random() * 2 > 1 ? 1 : -1,
+					m1 = Math.random() * 2 > 1 ? 0 : 1,
+					m2 = Math.random() * 2 > 1 ? 0 : 1,
+					x = obj.x() + n1*m1,
+					y = obj.y() + n2*m2,
+					z = obj.z() || 0,
+					o = this.tile(x,y,z);
+				if (o) {
+					return o;
+				}
+			},
 			generate: function() {
 				for (var x = 0; x < w; x++) {
 					for (var y = 0; y < h; y++) {
@@ -154,8 +176,9 @@ Tile.World = {
 						var tile = Tile.Obj.create({
 							x: x,
 							y: y,
-							type: r < 50 ? 'grass' : 'water',
-							actions: ['wetten', 'flood', 'unflood', 'info'],
+							type: r < 90 ? 'grass' : 'water',
+							actions: ['wetten', 'flood', 'evaporate', 'info'],
+							depth: r < 90 ? 0 : 1,
 							properties: {
 								wetness: r < 95 ? 0 : 6
 							}
@@ -251,9 +274,17 @@ Tile.Canvas = {
 				});
 			},
 			draw: function(obj) {
-				var sprite = sprites[obj.type()];
+				var sprite = sprites[obj.type()],
+					depth = obj.depth();
 				if (sprite) {
+					if (depth > 0) {
+						context.save();
+						context.globalAlpha = 1.0 - parseFloat('0.1' + depth);
+					}
 					context.drawImage(sprite.img(), obj.x()*tilesize, obj.y()*tilesize, 16, 16);
+					if (depth > 0) {
+						context.restore();
+					}
 				} else {
 					throw new Error('No sprite found for "' + obj.type()) + '" at (' + obj.x() + ',' +obj.y() + ')';
 				}
@@ -274,7 +305,9 @@ Tile.Canvas = {
 			},
 			world: function() { return world; },
 			clear: function() {
-				context.clearRect(0, 0, canvas.width, canvas.height);
+				context.fillStyle = '#000000';
+				context.fillRect(0,0,canvas.width,canvas.height);
+				//context.clearRect(0, 0, canvas.width, canvas.height);
 			},
 			run: function() {
 				var self = this;
@@ -345,6 +378,7 @@ game.world().action({
 	types: ['grass', 'water'],
 	action: function(obj){
 		if (obj.properties().wetness >= 4) {
+			//obj.deepen();
 			obj.type('water');
 		} else {
 			obj.type('grass');
@@ -355,39 +389,26 @@ game.world().action({
 	name: 'flood',
 	types: ['water'],
 	action: function(obj){
-		if (Math.random() * 1000 > 990) {
-			var n1 = Math.random() * 2 > 1 ? 1 : -1,
-				n2 = Math.random() * 2 > 1 ? 1 : -1,
-				m1 = Math.random() * 2 > 1 ? 0 : 1,
-				m2 = Math.random() * 2 > 1 ? 0 : 1,
-				x = obj.x() + n1*m1,
-				y = obj.y() + n2*m2,
-				o = game.world().tile(x,y);
-			if (o) {
-				if (o.properties().wetness < 4) {
-					o.properties().wetness += 1;
-				}
+		var neighbor = game.world().getRandomNeighborOf(obj);
+		if (neighbor && neighbor.depth() >= obj.depth()) {
+			if (neighbor.properties().wetness < 4) {
+				neighbor.properties().wetness += 1;
+				//neighbor.deepen();
 			}
 		}
 	}
 });
 game.world().action({
-	name: 'unflood',
+	name: 'evaporate',
 	types: ['grass'],
 	action: function(obj){
-		if (Math.random() * 1000 > 995) {
-			var n1 = Math.random() * 2 > 1 ? 1 : -1,
-				n2 = Math.random() * 2 > 1 ? 1 : -1,
-				m1 = Math.random() * 2 > 1 ? 0 : 1,
-				m2 = Math.random() * 2 > 1 ? 0 : 1,
-				x = obj.x() + n1*m1,
-				y = obj.y() + n2*m2,
-				o = game.world().tile(x,y);
-			if (o) {
-				if (o.properties().wetness >= 4) {
-					o.properties().wetness -= 1;
-				}
-			}
+		if (Math.random() * 1000 > 950) {
+			// var neighbor = game.world().getRandomNeighborOf(obj);
+			// if (neighbor) {
+			// 	if (neighbor.properties().wetness >= 4) {
+			// 		neighbor.properties().wetness -= 1;
+			// 	}
+			// }
 		}
 	}
 });
@@ -396,7 +417,8 @@ game.world().action({
 	types: ['water', 'grass'],
 	events: ['click'],
 	action: function(obj){
-		console.log(obj.properties().wetness);
+		obj.deepen();
+		console.log(obj.properties(), obj.depth());
 	}
 });
 game.run();
