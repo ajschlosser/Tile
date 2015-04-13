@@ -58,7 +58,7 @@ gulp.task('vendors', function(){
 });
 
 gulp.task('scripts', function(){
-	return gulp.src(conf.scripts.src)
+	return gulp.src(conf.scripts.sources)
 		.pipe(jshint())
 		.pipe(jshint.reporter(stylish))
 		.pipe(concat(conf.scripts.name))

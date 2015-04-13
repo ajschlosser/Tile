@@ -2,6 +2,7 @@ h1 {
   text-align: center;
 }
 canvas {
+  background-color: #000;
   border: 1px solid #333;
   display: block;
   margin-left: auto;

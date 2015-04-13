@@ -11,6 +11,14 @@ module.exports = {
 	"scripts": {
 		"src": "src/scripts/**/*.js",
 		"dist": "dist",
+		"sources": [
+			"src/scripts/engine.js",
+			"src/scripts/sprites.js",
+			"src/scripts/events.js",
+			"src/scripts/actions.js",
+			"src/scripts/utils.js",
+			"src/scripts/game.js"
+		],
 		"name": "game.js"
 	},
 	"vendors": {
