@@ -14,7 +14,7 @@ module.exports = {
 		"sources": [
 			"src/scripts/engine.js",
 			"src/scripts/sprites.js",
-			"src/scripts/events.js",
+			"src/scripts/types.js",
 			"src/scripts/actions.js",
 			"src/scripts/utils.js",
 			"src/scripts/game.js"

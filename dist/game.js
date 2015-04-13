@@ -132,7 +132,9 @@ Tile.World = {
 		params = params || {};
 		var w = params.w || params.width,
 			h = params.h || params.height,
+			types = function(t) { if (params.types[t]) return params.types[t]; else return params.types['*']; },
 			tiles = { 0: [] };
+		console.log(types);
 		return  {
 			width: function() { return w; },
 			height: function() { return h; },
@@ -166,17 +168,20 @@ Tile.World = {
 			generate: function() {
 				for (var x = 0; x < w; x++) {
 					for (var y = 0; y < h; y++) {
-						var r = Math.random()*100;
+						var r = Math.random()*100,
+							type = r < 90 ? 'grass' : 'water';
 						var tile = Tile.Obj.create({
 							x: x,
 							y: y,
-							type: r < 90 ? 'grass' : 'water',
+							type: type,
 							actions: ['wetten', 'flood', 'info'],
-							depth: r < 90 ? 0 : 1,
+							depth: type === 'water' ? 1 : 0,
 							properties: {
-								wetness: r < 95 ? 0 : 6
+								wetness: r < 95 ? 0 : 6,
+								loaded: types(type)
 							}
 						});
+						tile.properties().wetness = r < 95 ? 0 : 6;
 						tiles[0].push(tile);
 					}
 				}
@@ -215,7 +220,8 @@ Tile.Engine = {
 			tilesize = params.tilesize || 16,
 			world = params.world || Tile.World.create({
 				width: canvas.width / tilesize,
-				height: canvas.height / tilesize
+				height: canvas.height / tilesize,
+				types: params.types || { '*': {} }
 			});
 
 		// SPRITES
@@ -378,6 +384,9 @@ Tile.Engine = {
 
 // END ENGINE
 // --------------------------------------------------
+// --------------------------------------------------
+// BEGIN SPRITES
+
 var sprites = [
 	{
 		src: 'art/grass.png',
@@ -393,6 +402,27 @@ var sprites = [
 	}
 ];
 
+// END SPRITES
+// --------------------------------------------------
+// --------------------------------------------------
+// BEGIN TYPES
+
+var types = {
+	'*': {
+		levels: {
+			water: 0
+		}
+	},
+	water: {
+		flows: true
+	}
+};
+
+// END TYPES
+// --------------------------------------------------
+// --------------------------------------------------
+// BEGIN ACTIONS
+
 var actions = [
 	{
 		name: 'wetten',
@@ -401,7 +431,7 @@ var actions = [
 			if (obj.properties().wetness >= 4) {
 				obj.type('water');
 			} else {
-				obj.type('grass');
+				//obj.type('grass');
 			}
 		}	
 	},
@@ -428,6 +458,12 @@ var actions = [
 		}	
 	}
 ];
+
+// END ACTIONS
+// --------------------------------------------------
+// --------------------------------------------------
+// BEGIN UTILS
+
 var utils = {
 	getRandomNeighborOf: function(obj) {
 		var n1 = Math.random() * 2 > 1 ? 1 : -1,
@@ -443,13 +479,23 @@ var utils = {
 		}
 	}
 };
+
+// END UTILS
+// --------------------------------------------------
+// --------------------------------------------------
+// BEGIN GAME
+
 var game = Tile.Engine.create({
 	w: 640,
 	h: 480,
 	tilesize: 16,
 	utils: utils,
+	types: types,
 	sprites: sprites,
 	actions: actions
 });
 
 game.run();
+
+// END GAME
+// --------------------------------------------------

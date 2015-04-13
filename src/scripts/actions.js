@@ -1,3 +1,6 @@
+// --------------------------------------------------
+// BEGIN ACTIONS
+
 var actions = [
 	{
 		name: 'wetten',
@@ -6,7 +9,7 @@ var actions = [
 			if (obj.properties().wetness >= 4) {
 				obj.type('water');
 			} else {
-				obj.type('grass');
+				//obj.type('grass');
 			}
 		}	
 	},
@@ -33,3 +36,6 @@ var actions = [
 		}	
 	}
 ];
+
+// END ACTIONS
+// --------------------------------------------------

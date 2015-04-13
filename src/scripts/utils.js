@@ -1,3 +1,6 @@
+// --------------------------------------------------
+// BEGIN UTILS
+
 var utils = {
 	getRandomNeighborOf: function(obj) {
 		var n1 = Math.random() * 2 > 1 ? 1 : -1,
@@ -13,3 +16,6 @@ var utils = {
 		}
 	}
 };
+
+// END UTILS
+// --------------------------------------------------
