@@ -127,6 +127,7 @@ Tile.Obj = {
 		var x = params.x,
 			y = params.y,
 			z = params.z || 0,
+			height = params.height || 0,
 			depth = params.depth || 0,
 			type = params.type,
 			visible = (params.visible === true || params.visible === false) ? params.visible : true,
@@ -137,7 +138,8 @@ Tile.Obj = {
 			x: function(n) { if (Number.isInteger(n)) x = n; else return x; },
 			y: function(n) { if (Number.isInteger(n)) y = n; else return y; },
 			z: function(n) { if (Number.isInteger(n)) z = n; else return z; },
-			depth: function(n) { if (Number.isInteger(n)) depth = n; else return depth; },
+			height: function(n) { if (Number.isInteger(n)) height = n; else return height; },
+			depth: function(n) { if (Number.isInteger(n) && n < 7) depth = n; else return depth; },
 			actions: function(action) { if (typeof action === 'function') actions.push(action); else return actions; },
 			properties: function() { return properties; },
 			type: function(t) { if (typeof t === 'string') type = t; else return type; }
@@ -198,7 +200,8 @@ Tile.World = {
 							x: x,
 							y: y,
 							type: type,
-							actions: ['wetten', 'flood', 'info'],
+							actions: ['wetten', 'flood', 'info', 'info2'],
+							height: type === 'grass' ? 7 : 6,
 							depth: type === 'water' ? 1 : 0,
 							properties: types(type)
 						});
@@ -319,7 +322,7 @@ Tile.Engine = {
 				if (sprite) {
 					if (depth > 0) {
 						context.save();
-						context.globalAlpha = 1.0 - parseFloat('0.1' + depth);
+						context.globalAlpha = 1.0 - parseFloat('0.' + depth);
 					}
 					context.drawImage(sprite.img(), obj.x()*tilesize, obj.y()*tilesize, tilesize, tilesize);
 					if (depth > 0) {
@@ -451,6 +454,7 @@ var actions = [
 		action: function(obj){
 			if (obj.properties().wetness >= 4) {
 				obj.type('water');
+				obj.properties().flows = true;
 			} else {
 				//obj.type('grass');
 			}
@@ -461,7 +465,7 @@ var actions = [
 		types: ['water'],
 		action: function(obj){
 			var neighbor = game.utils().getRandomNeighborOf(obj);
-			if (neighbor && neighbor.depth() >= obj.depth()) {
+			if (neighbor && obj.properties().flows && obj.height() >= neighbor.height() ) {
 				if (neighbor.properties().wetness < 4) {
 					neighbor.properties().wetness += 1;
 				}
@@ -473,9 +477,17 @@ var actions = [
 		types: ['water', 'grass'],
 		events: ['click'],
 		action: function(obj){
-			var depth = obj.depth();
-			obj.depth(depth+1);
 			console.log(obj.properties(), obj.depth());
+			console.log('height', obj.height());
+		}	
+	},
+	{
+		name: 'info2',
+		types: ['water', 'grass'],
+		events: ['dblclick'],
+		action: function(obj){
+			var height = obj.height();
+			obj.height(height-1);
 		}	
 	}
 ];
