@@ -77,6 +77,14 @@ Tile.tools = {
 	        x[k] = o[k];
 	    });
 	    return x;
+	},
+	contains: function(o1, o2) {
+		var keys = Object.getOwnPropertyNames(o1),
+            contains;
+		keys.forEach(function(k) {
+            contains = o1[k] !== o2[k];
+		});
+		return contains;
 	}
 };
 
@@ -287,9 +295,16 @@ Tile.Engine = {
 		// EVENTS
 		Tile.async.each(Object.getOwnPropertyNames(events), function(evt) {
 			canvas.addEventListener(evt, function(e){
+				e.preventDefault();
 				events[evt].push({
 					x: Math.floor(e.offsetX / tilesize),
-					y: Math.floor(e.offsetY / tilesize)
+					y: Math.floor(e.offsetY / tilesize),
+					conditions: {
+						alt: e.altKey,
+						shift: e.shiftKey,
+						ctrl: e.ctrlKey,
+						button: e.button
+					}
 				});
 			});			
 		});
