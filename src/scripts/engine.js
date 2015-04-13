@@ -60,6 +60,30 @@ Tile.async = {
 // --------------------------------------------------
 
 // --------------------------------------------------
+// BEGIN TOOLS
+
+Tile.tools = {
+	extend: function(o1, o2) {
+		var keys = Object.getOwnPropertyNames(o2);
+		keys.forEach(function(k) {
+			if (!o1[k]) o1[k] = o2[k];
+		});
+        return o1;
+	},
+	clone: function(o) {
+	    var x = {},
+	        keys = Object.getOwnPropertyNames(o);
+	    keys.forEach(function(k) {
+	        x[k] = o[k];
+	    });
+	    return x;
+	}
+};
+
+// END TOOLS
+// --------------------------------------------------
+
+// --------------------------------------------------
 // SPRITE
 
 Tile.Sprite = {
@@ -107,7 +131,7 @@ Tile.Obj = {
 			type = params.type,
 			visible = (params.visible === true || params.visible === false) ? params.visible : true,
 			actions = params.actions || [],
-			properties = params.properties || {};
+			properties = Tile.tools.extend({}, params.properties);
 		return {
 			visible: function(b) { if (typeof b === 'boolean') visible = b; else return visible; },
 			x: function(n) { if (Number.isInteger(n)) x = n; else return x; },
@@ -176,10 +200,7 @@ Tile.World = {
 							type: type,
 							actions: ['wetten', 'flood', 'info'],
 							depth: type === 'water' ? 1 : 0,
-							properties: {
-								wetness: r < 95 ? 0 : 6,
-								loaded: types(type)
-							}
+							properties: types(type)
 						});
 						tile.properties().wetness = r < 95 ? 0 : 6;
 						tiles[0].push(tile);
