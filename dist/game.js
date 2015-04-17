@@ -168,7 +168,6 @@ Tile.World = {
 			h = params.h || params.height,
 			types = function(t) { if (params.types[t]) return params.types[t]; else return params.types['*']; },
 			tiles = { 0: [] };
-		console.log(types);
 		return  {
 			width: function() { return w; },
 			height: function() { return h; },
@@ -243,10 +242,11 @@ Tile.Engine = {
 		container.appendChild(canvas);
 
 		// Engine
-		var sprites = {},
+		var options = params.options || {},
+			sprites = {},
 			clicks = [],
 			utils = params.utils || {},
-			events = { click: [], dblclick: [] },
+			events = options.events || { click: [] },
 			actions = { '*': {} },
 			fps = params.fps || 60,
 			tilesize = params.tilesize || 16,
@@ -295,7 +295,17 @@ Tile.Engine = {
 		// EVENTS
 		Tile.async.each(Object.getOwnPropertyNames(events), function(evt) {
 			canvas.addEventListener(evt, function(e){
-				e.preventDefault();
+				var ready = true;
+				if (options.dblclick) {
+					ready = false;
+					var timer = setTimeout(function(){
+							ready = true;
+						}, 200);
+					if (e.type === 'dblclick') {
+						events.click = [];
+						ready = true;
+					}
+				}
 				events[evt].push({
 					x: Math.floor(e.offsetX / tilesize),
 					y: Math.floor(e.offsetY / tilesize),
@@ -304,7 +314,8 @@ Tile.Engine = {
 						shift: e.shiftKey,
 						ctrl: e.ctrlKey,
 						button: e.button
-					}
+					},
+					ready: function() { return ready; }
 				});
 			});			
 		});
@@ -383,11 +394,16 @@ Tile.Engine = {
 								var x = obj.x(),
 									y = obj.y();
 								Tile.async.each(a.events(), function(event){
-									for (var i = 0; i < events[event].length; i++) {
-										var e = events[event][i];
-										if (e.x === x && e.y === y) {
-											events[event].splice(i, 1);
-											a.run(obj);
+									if (events[event]) {
+										for (var i = 0; i < events[event].length; i++) {
+											var e = events[event][i];
+											if (e.x === x && e.y === y) {
+												if (e.ready()) {
+													console.log('firing');
+													events[event].splice(i, 1);
+													a.run(obj);
+												}
+											}
 										}
 									}
 								});
@@ -492,14 +508,13 @@ var actions = [
 		types: ['water', 'grass'],
 		events: ['click'],
 		action: function(obj){
-			console.log(obj.properties(), obj.depth());
-			console.log('height', obj.height());
+
 		}	
 	},
 	{
 		name: 'info2',
 		types: ['water', 'grass'],
-		events: ['dblclick'],
+		events: ['mouseout'],
 		action: function(obj){
 			var height = obj.height();
 			obj.height(height-1);

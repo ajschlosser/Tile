@@ -31,14 +31,13 @@ var actions = [
 		types: ['water', 'grass'],
 		events: ['click'],
 		action: function(obj){
-			console.log(obj.properties(), obj.depth());
-			console.log('height', obj.height());
+
 		}	
 	},
 	{
 		name: 'info2',
 		types: ['water', 'grass'],
-		events: ['dblclick'],
+		events: ['mouseout'],
 		action: function(obj){
 			var height = obj.height();
 			obj.height(height-1);
