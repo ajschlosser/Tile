@@ -79,10 +79,10 @@ Tile.tools = {
 	    return x;
 	},
 	contains: function(o1, o2) {
-		var keys = Object.getOwnPropertyNames(o1),
+		var keys = Object.getOwnPropertyNames(o2),
             contains;
 		keys.forEach(function(k) {
-            contains = o1[k] !== o2[k];
+            contains = o1[k] === o2[k];
 		});
 		return contains;
 	}
@@ -246,7 +246,10 @@ Tile.Engine = {
 			sprites = {},
 			clicks = [],
 			utils = params.utils || {},
-			events = options.events || { click: [] },
+			events = options.events || { 
+				click: [],
+				mousemove: []
+			},
 			actions = { '*': {} },
 			fps = params.fps || 60,
 			tilesize = params.tilesize || 16,
@@ -256,7 +259,7 @@ Tile.Engine = {
 				types: params.types || { '*': {} }
 			});
 
-		// SPRITES
+		// SPRITSE
 		Tile.async.each(params.sprites, function(sprite){
 			sprites[sprite.type] = Tile.Sprite.create(sprite);
 		});
@@ -394,13 +397,21 @@ Tile.Engine = {
 								var x = obj.x(),
 									y = obj.y();
 								Tile.async.each(a.events(), function(event){
-									if (events[event]) {
-										for (var i = 0; i < events[event].length; i++) {
-											var e = events[event][i];
+									var type,
+										conditions;
+									if (typeof event === 'object') {
+										type = event.type;
+										conditions = event.conditions;
+									} else {
+										type = event;
+									}
+									if (events[type] && events[type].length) {
+										for (var i = 0; i < events[type].length; i++) {
+											var e = events[type][i];
 											if (e.x === x && e.y === y) {
-												if (e.ready()) {
-													console.log('firing');
-													events[event].splice(i, 1);
+												var matched = Tile.tools.contains(e.conditions, conditions);
+												if (e.ready() && matched) {
+													events[type].splice(i, 1);
 													a.run(obj);
 												}
 											}
@@ -506,18 +517,16 @@ var actions = [
 	{
 		name: 'info',
 		types: ['water', 'grass'],
-		events: ['click'],
-		action: function(obj){
-
-		}	
-	},
-	{
-		name: 'info2',
-		types: ['water', 'grass'],
-		events: ['mouseout'],
+		events: [{
+			type: 'mousemove',
+			conditions: {
+				ctrl: true
+			}
+		}],
 		action: function(obj){
 			var height = obj.height();
 			obj.height(height-1);
+			obj.depth(3);
 		}	
 	}
 ];

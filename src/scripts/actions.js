@@ -9,8 +9,6 @@ var actions = [
 			if (obj.properties().wetness >= 4) {
 				obj.type('water');
 				obj.properties().flows = true;
-			} else {
-				//obj.type('grass');
 			}
 		}	
 	},
@@ -29,18 +27,16 @@ var actions = [
 	{
 		name: 'info',
 		types: ['water', 'grass'],
-		events: ['click'],
-		action: function(obj){
-
-		}	
-	},
-	{
-		name: 'info2',
-		types: ['water', 'grass'],
-		events: ['mouseout'],
+		events: [{
+			type: 'mousemove',
+			conditions: {
+				ctrl: true
+			}
+		}],
 		action: function(obj){
 			var height = obj.height();
 			obj.height(height-1);
+			obj.depth(3);
 		}	
 	}
 ];
