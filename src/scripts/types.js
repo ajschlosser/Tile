@@ -6,7 +6,7 @@ var types = {
 		levels: {
 			water: 0
 		},
-		actions: ['deepen']
+		actions: ['deepen', 'info']
 	},
 	grass: {
 		actions: ['wetten']

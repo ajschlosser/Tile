@@ -208,7 +208,7 @@ Tile.World = {
 							x: x,
 							y: y,
 							type: type,
-							actions: ['wetten', 'flood', 'deepen'],
+							actions: ['wetten', 'flood', 'deepen', 'info'],
 							height: type === 'grass' ? 7 : 6,
 							depth: type === 'water' ? 1 : 0,
 							properties: types(type)
@@ -244,6 +244,7 @@ Tile.Engine = {
 
 		// Engine
 		var options = params.options || {},
+			ui = {},
 			sprites = {},
 			clicks = [],
 			utils = params.utils || {},
@@ -259,6 +260,27 @@ Tile.Engine = {
 				height: canvas.height / tilesize,
 				types: params.types || { '*': {} }
 			});
+
+		// UI
+		Tile.async.each(Tile.tools.keys(params.ui), function(id){
+			var e = document.getElementById(id),
+				buttons = params.ui[id].buttons ? Tile.tools.keys(params.ui[id].buttons) : null;
+			params.ui[id].id = e;
+			if (buttons) {
+				buttons.forEach(function(bid){
+					var b = document.getElementById(bid),
+						props = params.ui[id].buttons[bid];
+					b.addEventListener(props.event, function(){
+						if (props.callback) {
+							props.action(e, props.callback);	
+						} else {
+							props.action(e);
+						}
+					});
+				});
+			}
+			ui[id] = params.ui[id];
+		});
 
 		// SPRITES
 		Tile.async.each(params.sprites, function(sprite){

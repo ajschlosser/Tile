@@ -13,6 +13,7 @@ module.exports = {
 		"dist": "dist",
 		"sources": [
 			"src/scripts/engine.js",
+			"src/scripts/ui.js",
 			"src/scripts/sprites.js",
 			"src/scripts/types.js",
 			"src/scripts/actions.js",

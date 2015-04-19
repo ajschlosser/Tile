@@ -35,6 +35,18 @@ var actions = [
 			obj.height(height-1);
 			obj.depth(3);
 		}	
+	},
+	{
+		name: 'info',
+		events: [{
+			type: 'click',
+			conditions: {
+				shift: true
+			}
+		}],
+		action: function(obj){
+			ui.dialog.id.style.display='block';
+		}
 	}
 ];
 
