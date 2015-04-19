@@ -4,7 +4,6 @@
 var actions = [
 	{
 		name: 'wetten',
-		types: ['grass', 'water'],
 		action: function(obj){
 			if (obj.properties().wetness >= 4) {
 				obj.type('water');
@@ -14,7 +13,6 @@ var actions = [
 	},
 	{
 		name: 'flood',
-		types: ['water'],
 		action: function(obj){
 			var neighbor = game.utils().getRandomNeighborOf(obj);
 			if (neighbor && obj.properties().flows && obj.height() >= neighbor.height() ) {
@@ -25,8 +23,7 @@ var actions = [
 		}
 	},
 	{
-		name: 'info',
-		types: ['water', 'grass'],
+		name: 'deepen',
 		events: [{
 			type: 'mousemove',
 			conditions: {

@@ -68,24 +68,25 @@ Tile.tools = {
 		keys.forEach(function(k) {
 			if (!o1[k]) o1[k] = o2[k];
 		});
-        return o1;
+		return o1;
 	},
 	clone: function(o) {
-	    var x = {},
-	        keys = Object.getOwnPropertyNames(o);
-	    keys.forEach(function(k) {
-	        x[k] = o[k];
-	    });
-	    return x;
+		var x = {},
+			keys = Object.getOwnPropertyNames(o);
+		keys.forEach(function(k) {
+			x[k] = o[k];
+		});
+		return x;
 	},
 	contains: function(o1, o2) {
 		var keys = Object.getOwnPropertyNames(o2),
-            contains;
+			contains;
 		keys.forEach(function(k) {
-            contains = o1[k] === o2[k];
+			contains = o1[k] === o2[k];
 		});
 		return contains;
-	}
+	},
+	keys: function(o) { return Object.getOwnPropertyNames(o); }
 };
 
 // END TOOLS
@@ -207,7 +208,7 @@ Tile.World = {
 							x: x,
 							y: y,
 							type: type,
-							actions: ['wetten', 'flood', 'info', 'info2'],
+							actions: ['wetten', 'flood', 'deepen'],
 							height: type === 'grass' ? 7 : 6,
 							depth: type === 'water' ? 1 : 0,
 							properties: types(type)
@@ -259,7 +260,7 @@ Tile.Engine = {
 				types: params.types || { '*': {} }
 			});
 
-		// SPRITSE
+		// SPRITES
 		Tile.async.each(params.sprites, function(sprite){
 			sprites[sprite.type] = Tile.Sprite.create(sprite);
 		});
@@ -268,8 +269,13 @@ Tile.Engine = {
 		Tile.async.each(params.actions, function(a){
 				var name = a.name || Object.getOwnPropertyNames(actions).length + 1,
 					action = a.action,
-					types = a.types || [],
+					types = [],
 					events = a.events || [];
+				Tile.async.each(Tile.tools.keys(params.types), function(type){
+					if (params.types[type].actions && params.types[type].actions.indexOf(name) !== -1) {
+						types.push(type);
+					}
+				});
 				if (!name) {
 					throw new Error('Actions require a name');
 				} else if (typeof action !== 'function') {
@@ -320,7 +326,7 @@ Tile.Engine = {
 					},
 					ready: function() { return ready; }
 				});
-			});			
+			});         
 		});
 
 		// PUBLIC INTERFACE
@@ -477,10 +483,15 @@ var types = {
 	'*': {
 		levels: {
 			water: 0
-		}
+		},
+		actions: ['deepen']
+	},
+	grass: {
+		actions: ['wetten']
 	},
 	water: {
-		flows: true
+		flows: true,
+		actions: ['flood']
 	}
 };
 
@@ -492,19 +503,15 @@ var types = {
 var actions = [
 	{
 		name: 'wetten',
-		types: ['grass', 'water'],
 		action: function(obj){
 			if (obj.properties().wetness >= 4) {
 				obj.type('water');
 				obj.properties().flows = true;
-			} else {
-				//obj.type('grass');
 			}
 		}	
 	},
 	{
 		name: 'flood',
-		types: ['water'],
 		action: function(obj){
 			var neighbor = game.utils().getRandomNeighborOf(obj);
 			if (neighbor && obj.properties().flows && obj.height() >= neighbor.height() ) {
@@ -515,8 +522,7 @@ var actions = [
 		}
 	},
 	{
-		name: 'info',
-		types: ['water', 'grass'],
+		name: 'deepen',
 		events: [{
 			type: 'mousemove',
 			conditions: {

@@ -5,10 +5,15 @@ var types = {
 	'*': {
 		levels: {
 			water: 0
-		}
+		},
+		actions: ['deepen']
+	},
+	grass: {
+		actions: ['wetten']
 	},
 	water: {
-		flows: true
+		flows: true,
+		actions: ['flood']
 	}
 };
 
