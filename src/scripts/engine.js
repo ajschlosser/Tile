@@ -267,9 +267,9 @@ Tile.Engine = {
 				buttons = params.ui[id].buttons ? Tile.tools.keys(params.ui[id].buttons) : null;
 			params.ui[id].id = e;
 			if (buttons) {
-				buttons.forEach(function(bid){
-					var b = document.getElementById(bid),
-						props = params.ui[id].buttons[bid];
+				buttons.forEach(function(button){
+					var b = document.getElementById(button),
+						props = params.ui[id].buttons[button];
 					b.addEventListener(props.event, function(){
 						if (props.callback) {
 							props.action(e, props.callback);	
@@ -279,6 +279,19 @@ Tile.Engine = {
 					});
 				});
 			}
+			Tile.tools.extend(params.ui[id], {
+				show: function(d) {
+					if (d) {
+						e.style.display = d;
+					} else {
+						e.style.display = 'block';
+					}
+				},
+				hide: function() {
+					e.style.display = 'none';
+				}
+			});
+			console.log(params.ui[id]);
 			ui[id] = params.ui[id];
 		});
 

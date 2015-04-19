@@ -45,7 +45,7 @@ var actions = [
 			}
 		}],
 		action: function(obj){
-			ui.dialog.id.style.display='block';
+			ui.dialog.show();
 		}
 	}
 ];
