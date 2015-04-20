@@ -240,6 +240,7 @@ Tile.Engine = {
 			context = canvas.getContext('2d');
 		canvas.width = params.w || params.width || 0;
 		canvas.height = params.h || params.height || 0;
+		context.imageSmoothingenabled = false;
 		container.appendChild(canvas);
 
 		// Engine
@@ -262,14 +263,25 @@ Tile.Engine = {
 			});
 
 		// UI
-		Tile.async.each(Tile.tools.keys(params.ui), function(id){
-			var e = document.getElementById(id),
-				buttons = params.ui[id].buttons ? Tile.tools.keys(params.ui[id].buttons) : null;
-			params.ui[id].id = e;
+		Tile.async.each(Tile.tools.keys(params.ui), function(uid){
+			var e = document.createElement('div'),
+				buttons = params.ui[uid].buttons ? Tile.tools.keys(params.ui[uid].buttons) : null;
+			e.id = uid;
+			e.style.display = 'none';
+			var title = document.createElement('h1');
+			title.className = 'title ' + uid;
+			e.appendChild(title);
+			var content = document.createElement('p');
+			content.className = 'content ' + uid;
+			e.appendChild(content);
 			if (buttons) {
 				buttons.forEach(function(button){
-					var b = document.getElementById(button),
-						props = params.ui[id].buttons[button];
+					var b = document.createElement('button'),
+						props = params.ui[uid].buttons[button];
+					b.className = 'button ' + uid + ' ' + button;
+					if (props.text) {
+						b.innerText = props.text;
+					}
 					b.addEventListener(props.event, function(){
 						if (props.callback) {
 							props.action(e, props.callback);	
@@ -277,9 +289,14 @@ Tile.Engine = {
 							props.action(e);
 						}
 					});
+					e.appendChild(b);
 				});
 			}
-			Tile.tools.extend(params.ui[id], {
+			container.appendChild(e);
+			params.ui[uid].id = e;
+			Tile.tools.extend(params.ui[uid], {
+				title: function(t) { title.innerText = t; },
+				content: function(t) { content.innerHTML = t; },
 				show: function(d) {
 					if (d) {
 						e.style.display = d;
@@ -291,8 +308,7 @@ Tile.Engine = {
 					e.style.display = 'none';
 				}
 			});
-			console.log(params.ui[id]);
-			ui[id] = params.ui[id];
+			ui[uid] = params.ui[uid];
 		});
 
 		// SPRITES
@@ -361,6 +377,7 @@ Tile.Engine = {
 					},
 					ready: function() { return ready; }
 				});
+				e.preventDefault();
 			});         
 		});
 

@@ -45,6 +45,9 @@ var actions = [
 			}
 		}],
 		action: function(obj){
+			var name = obj.type();
+			ui.dialog.title(game.utils().capitalizeFirstLetter(name));
+			ui.dialog.content('This ' + name + ' has a height of ' + obj.height() + ', a depth of ' + obj.depth() + ', and a wetness of ' + obj.properties().wetness + '.');
 			ui.dialog.show();
 		}
 	}

@@ -14,6 +14,9 @@ var utils = {
 		if (o) {
 			return o;
 		}
+	},
+	capitalizeFirstLetter: function(s) {
+		return s.charAt(0).toUpperCase() + s.substr(1, s.length);
 	}
 };
 

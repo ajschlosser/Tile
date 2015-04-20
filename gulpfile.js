@@ -65,6 +65,11 @@ gulp.task('scripts', function(){
 		.pipe(gulp.dest(conf.scripts.dist));
 });
 
+gulp.task('assets', function(){
+	return gulp.src(conf.assets.sources)
+		.pipe(gulp.dest(conf.assets.dist));
+});
+
 gulp.task('styles', function(){
 	return gulp.src(conf.styles.src)
 		.pipe(less({paths: conf.styles.src}))
@@ -77,7 +82,7 @@ gulp.task('templates', function(){
 		.pipe(gulp.dest(conf.templates.dist));
 });
 
-gulp.task('default', ['vendors'], function(){
+gulp.task('default', ['vendors', 'assets'], function(){
 	gulp.watch(conf.templates.src, ['templates']);
 	gulp.watch(conf.styles.src, ['styles']);
 	gulp.watch([conf.scripts.src, '!gulpfile.js'], ['scripts']);

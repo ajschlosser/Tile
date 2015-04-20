@@ -8,6 +8,13 @@ module.exports = {
 		"dist": "dist/styles",
 		"name": "styles.css"
 	},
+	"assets": {
+		"dist": "dist/assets",
+		"sources": [
+			"src/fonts/**/*",
+			"src/art/**/*.png"
+		]
+	},
 	"scripts": {
 		"src": "src/scripts/**/*.js",
 		"dist": "dist",
