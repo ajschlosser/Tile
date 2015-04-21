@@ -41,8 +41,9 @@ var actions = [
 		action: function(obj){
 			var r = Math.random() * 10000;
 			if (obj.properties().growth && r > 9950) {
-				var g = Math.floor(Math.random() * 9);
-				obj.properties()[obj.properties().growth[0]] += g * game.utils().getRandomNeighborOf(obj).type() === 'farm' ? 50 : 1;
+				var g = Math.floor(Math.random() * 9),
+					farms = game.utils().hasNeighborOfType(obj, 'farm', 3) * 25 || 1;
+				obj.properties()[obj.properties().growth[0]] += g * farms;
 			}
 		}	
 	},
@@ -58,6 +59,7 @@ var actions = [
 					content += 'It has a ' + prop + ' of ' + obj.properties()[prop] + '. ';
 				}
 			});
+			console.log(game.utils().hasNeighborOfType(obj,'meadow',2))
 			ui.dialog.content(content);
 			ui.dialog.show();
 		}

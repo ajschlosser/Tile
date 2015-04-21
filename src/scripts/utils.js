@@ -15,6 +15,19 @@ var utils = {
 			return o;
 		}
 	},
+	hasNeighborOfType: function(obj, type, range) {
+		range = range || 1;
+		var count = 0;
+		for (var x = obj.x() - range; x < obj.x() + range; x++) {
+			for (var y = obj.y() - range; y < obj.y() + range; y++) {
+				var o = game.world().tile(x,y,obj.z() || 0);
+				if (o && o.type() === type) {
+					count++;
+				}
+			}
+		}
+		return count;
+	},
 	capitalizeFirstLetter: function(s) {
 		return s.charAt(0).toUpperCase() + s.substr(1, s.length);
 	}
