@@ -114,7 +114,13 @@ Tile.Sprite = {
 				}
 				this.loaded(callback);
 			},
-			type: function(t) { if (typeof t === 'string') type = t; else return type; },
+			type: function(t) {
+				if (typeof t === 'string') {
+					type = t;
+				} else {
+					return type;
+				}
+			},
 			loaded: function(callback) {
 				img.addEventListener('load', function() {
 					callback();
@@ -143,15 +149,65 @@ Tile.Obj = {
 			actions = params.actions || [],
 			properties = Tile.tools.extend({}, params.properties);
 		return {
-			visible: function(b) { if (typeof b === 'boolean') visible = b; else return visible; },
-			x: function(n) { if (Number.isInteger(n)) x = n; else return x; },
-			y: function(n) { if (Number.isInteger(n)) y = n; else return y; },
-			z: function(n) { if (Number.isInteger(n)) z = n; else return z; },
-			height: function(n) { if (Number.isInteger(n)) height = n; else return height; },
-			depth: function(n) { if (Number.isInteger(n) && n < 7) depth = n; else return depth; },
-			actions: function(action) { if (typeof action === 'function') actions.push(action); else return actions; },
-			properties: function() { return properties; },
-			type: function(t) { if (typeof t === 'string') type = t; else return type; }
+			visible: function(b) {
+				if (typeof b === 'boolean') {
+					visible = b;
+				} else {
+					return visible;
+				}
+			},
+			x: function(n) {
+				if (Number.isInteger(n)) {
+					x = n;
+				} else {
+					return x;
+				}
+			},
+			y: function(n) {
+				if (Number.isInteger(n)) {
+					y = n;
+				} else {
+					return y;
+				}
+			},
+			z: function(n) {
+				if (Number.isInteger(n)) {
+					z = n;
+				} else {
+					return z;
+				}
+			},
+			height: function(n) {
+				if (Number.isInteger(n)) {
+					height = n;
+				} else {
+					return height;
+				}
+			},
+			depth: function(n) {
+				if (Number.isInteger(n) && n < 7) {
+					depth = n;
+				} else {
+					return depth;
+				}
+			},
+			actions: function(action) {
+				if (typeof action === 'function') {
+					actions.push(action);
+				} else {
+					return actions;
+				}
+			},
+			properties: function() {
+				return properties;
+			},
+			type: function(t) {
+				if (typeof t === 'string') {
+					type = t;
+				} else {
+					return type;
+				}
+			}
 		};
 	}
 };
@@ -167,19 +223,28 @@ Tile.World = {
 		params = params || {};
 		var w = params.w || params.width,
 			h = params.h || params.height,
-			types = function(t) { if (params.types[t]) return params.types[t]; else return params.types['*']; },
+			types = function(t) {
+				if (params.types[t]) {
+					return params.types[t];
+				} else {
+					return params.types['*'];
+				}
+			},
 			tiles = { 0: [] };
 		return  {
-			width: function() { return w; },
-			height: function() { return h; },
+			width: function() {
+				return w;
+			},
+			height: function() {
+				return h;
+			},
 			tile: function(x, y, z) {
 				z = z || 0;
 				var ts = tiles[z],
 					l = ts.length,
-					vert = w > h ? true : false,
 					i = 0,
 					t;
-				if (vert) {
+				if (w > h) {
 					for (i = 0; i < l; i++) {
 						t = ts[i];
 						if (t.y() === y && t.x() === x) {
@@ -195,7 +260,9 @@ Tile.World = {
 					}
 				}
 			},
-			tiles: function(z) { return tiles[z]; },
+			tiles: function(z) {
+				return tiles[z];
+			},
 			put: function(tile) {
 				tiles[tile.z()].push(tile);
 			},
@@ -205,13 +272,13 @@ Tile.World = {
 						var r = Math.random()*100,
 							type = r < 90 ? 'grass' : 'water';
 						var tile = Tile.Obj.create({
-							x: x,
-							y: y,
-							type: type,
-							actions: ['wetten', 'flood', 'deepen', 'info'],
-							height: type === 'grass' ? 7 : 6,
-							depth: type === 'water' ? 1 : 0,
-							properties: types(type)
+							x : x,
+							y : y,
+							type : type,
+							actions : ['wetten', 'flood', 'deepen', 'info'],
+							height : type === 'grass' ? 7 : 6,
+							depth : type === 'water' ? 1 : 0,
+							properties : types(type)
 						});
 						tile.properties().wetness = r < 95 ? 0 : 6;
 						tiles[0].push(tile);
@@ -257,9 +324,9 @@ Tile.Engine = {
 			fps = params.fps || 60,
 			tilesize = params.tilesize || 16,
 			world = params.world || Tile.World.create({
-				width: canvas.width / tilesize,
-				height: canvas.height / tilesize,
-				types: params.types || { '*': {} }
+				width : canvas.width / tilesize,
+				height : canvas.height / tilesize,
+				types : params.types || { '*': {} }
 			});
 
 		// UI
@@ -295,11 +362,15 @@ Tile.Engine = {
 			container.appendChild(e);
 			params.ui[uid].id = e;
 			Tile.tools.extend(params.ui[uid], {
-				title: function(t) { title.innerText = t; },
-				content: function(t) { content.innerHTML = t; },
-				show: function(d) {
+				title: function(s) {
+					title.innerText = s;
+				},
+				content: function(s) {
+					content.innerHTML = s;
+				},
+				show: function(s) {
 					if (d) {
-						e.style.display = d;
+						e.style.display = s;
 					} else {
 						e.style.display = 'block';
 					}
@@ -339,15 +410,23 @@ Tile.Engine = {
 						}
 						actions[type][name] = {
 							run: action,
-							types: function() { return types; },
-							events: function() { return events; }
+							types: function() {
+								return types;
+							},
+							events: function() {
+								return events;
+							}
 						};
 					});
 				} else {
 					actions['*'][name] = {
 						run: action,
-						types: function() { return types; },
-						events: function() { return events; }
+						types: function() {
+							return types;
+						},
+						events: function() {
+							return events;
+						}
 					};
 				}
 		});
@@ -367,15 +446,17 @@ Tile.Engine = {
 					}
 				}
 				events[evt].push({
-					x: Math.floor(e.offsetX / tilesize),
-					y: Math.floor(e.offsetY / tilesize),
-					conditions: {
-						alt: e.altKey,
-						shift: e.shiftKey,
-						ctrl: e.ctrlKey,
-						button: e.button
+					x : Math.floor(e.offsetX / tilesize),
+					y : Math.floor(e.offsetY / tilesize),
+					conditions : {
+						alt : e.altKey,
+						shift : e.shiftKey,
+						ctrl : e.ctrlKey,
+						button : e.button
 					},
-					ready: function() { return ready; }
+					ready : function() {
+						return ready;
+					}
 				});
 				e.preventDefault();
 			});         
@@ -383,9 +464,15 @@ Tile.Engine = {
 
 		// PUBLIC INTERFACE
 		return {
-			utils: function() { return utils; },
-			width: function() { return canvas.width; },
-			height: function() { return canvas.width; },
+			utils: function() {
+				return utils;
+			},
+			width: function() {
+				return canvas.width;
+			},
+			height: function() {
+				return canvas.width;
+			},
 			ctx: function() {
 				return context;
 			},
@@ -433,9 +520,15 @@ Tile.Engine = {
 					});
 				}
 			},
-			actions: function() { return actions; },
-			events: function() { return events; },
-			world: function() { return world; },
+			actions: function() {
+				return actions;
+			},
+			events: function() {
+				return events;
+			},
+			world: function() {
+				return world;
+			},
 			clear: function() {
 				context.clearRect(0, 0, canvas.width, canvas.height);
 			},
