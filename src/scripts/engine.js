@@ -269,18 +269,31 @@ Tile.World = {
 			generate: function() {
 				for (var x = 0; x < w; x++) {
 					for (var y = 0; y < h; y++) {
-						var r = Math.random()*100,
-							type = r < 90 ? 'grass' : 'water';
+						var r = Math.random()*1000,
+							type;
+						if (r < 850) {
+							type = 'grass';
+						} if (r >= 850) {
+							type = 'meadow';
+						} if (r >= 900) {
+							type = 'farm';
+						} if (r >= 950) {
+							type = 'water';
+						} if (r > 995) {
+							type = 'town';
+						}
 						var tile = Tile.Obj.create({
 							x : x,
 							y : y,
 							type : type,
-							actions : ['wetten', 'flood', 'deepen', 'info'],
+							actions : ['wetten', 'flood', 'deepen', 'grow', 'info'],
 							height : type === 'grass' ? 7 : 6,
 							depth : type === 'water' ? 1 : 0,
 							properties : types(type)
 						});
-						tile.properties().wetness = r < 95 ? 0 : 6;
+						if (type !== 'town') {
+							tile.properties().wetness = r < 950 ? 0 : 6;
+						}
 						tiles[0].push(tile);
 					}
 				}
@@ -307,7 +320,7 @@ Tile.Engine = {
 			context = canvas.getContext('2d');
 		canvas.width = params.w || params.width || 0;
 		canvas.height = params.h || params.height || 0;
-		context.imageSmoothingenabled = false;
+		context.imageSmoothingEnabled = false;
 		container.appendChild(canvas);
 
 		// Engine
@@ -369,7 +382,7 @@ Tile.Engine = {
 					content.innerHTML = s;
 				},
 				show: function(s) {
-					if (d) {
+					if (s) {
 						e.style.display = s;
 					} else {
 						e.style.display = 'block';
@@ -560,8 +573,7 @@ Tile.Engine = {
 										for (var i = 0; i < events[type].length; i++) {
 											var e = events[type][i];
 											if (e.x === x && e.y === y) {
-												var matched = Tile.tools.contains(e.conditions, conditions);
-												if (e.ready() && matched) {
+												if (e.ready() && ((event.conditions && Tile.tools.contains(e.conditions, conditions)) || !event.conditions)) {
 													events[type].splice(i, 1);
 													a.run(obj);
 												}

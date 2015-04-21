@@ -37,17 +37,28 @@ var actions = [
 		}	
 	},
 	{
-		name: 'info',
-		events: [{
-			type: 'click',
-			conditions: {
-				shift: true
+		name: 'grow',
+		action: function(obj){
+			var r = Math.random() * 10000;
+			if (obj.properties().growth && r > 9950) {
+				var g = Math.floor(Math.random() * 9);
+				obj.properties()[obj.properties().growth[0]] += g * game.utils().getRandomNeighborOf(obj).type() === 'farm' ? 50 : 1;
 			}
-		}],
+		}	
+	},
+	{
+		name: 'info',
+		events: ['click'],
 		action: function(obj){
 			var name = obj.type();
 			ui.dialog.title(game.utils().capitalizeFirstLetter(name));
-			ui.dialog.content('This ' + name + ' has a height of ' + obj.height() + ', a depth of ' + obj.depth() + ', and a wetness of ' + obj.properties().wetness + '.');
+			var content = 'This ' + name + ' has a height of ' + obj.height() + ', a depth of ' + obj.depth() + '. ';
+			Tile.tools.keys(obj.properties()).forEach(function(prop){
+				if (!Array.isArray(obj.properties()[prop]) && typeof obj.properties()[prop] !== 'object') {
+					content += 'It has a ' + prop + ' of ' + obj.properties()[prop] + '. ';
+				}
+			});
+			ui.dialog.content(content);
 			ui.dialog.show();
 		}
 	}

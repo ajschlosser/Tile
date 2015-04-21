@@ -14,6 +14,17 @@ var types = {
 	water: {
 		flows: true,
 		actions: ['flood']
+	},
+	meadow: {
+		actions: ['wetten']
+	},
+	town: {
+		population: 500,
+		growth: ['population']
+	},
+	farm: {
+		yield: 10,
+		actions: ['wetten']
 	}
 };
 
