@@ -90,3 +90,5 @@ gulp.task('default', ['vendors', 'assets'], function(){
 		console.info('Watching for changes...');
 	},200);
 });
+
+gulp.task('dist', ['vendors', 'scripts', 'assets', 'styles', 'templates']);

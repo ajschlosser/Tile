@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "gulp": "gulp --gulpfile gulpfile.js"
+    "gulp": "gulp --gulpfile gulpfile.js",
+    "gulp-dist": "gulp --gulpfile gulpfile.js dist"
   },
   "devDependencies": {
     "async": "^0.9.0",
