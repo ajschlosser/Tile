@@ -86,7 +86,12 @@ Tile.tools = {
 		});
 		return contains;
 	},
-	keys: function(o) { return Object.getOwnPropertyNames(o); }
+	keys: function(o) {
+		if (typeof o !== 'object') {
+			throw new Error(o + ' is not an object');
+		}
+		return Object.getOwnPropertyNames(o);
+	}
 };
 
 // END TOOLS
@@ -555,7 +560,8 @@ Tile.Engine = {
 					}
 				});
 				Tile.async.each(objs, function(obj){
-					Tile.async.each(obj.actions(), function(name){
+					var as = Tile.tools.keys(actions[obj.type()] || {}).concat(Tile.tools.keys(actions['*'] || {}));
+					Tile.async.each(as, function(name){
 						function run(a) {
 							if (a.events().length) {
 								var x = obj.x(),

@@ -59,7 +59,7 @@ var actions = [
 					content += 'It has a ' + prop + ' of ' + obj.properties()[prop] + '. ';
 				}
 			});
-			console.log(game.utils().hasNeighborOfType(obj,'meadow',2))
+			console.log(game.utils().hasNeighborOfType(obj,'farm',3));
 			ui.dialog.content(content);
 			ui.dialog.show();
 		}
