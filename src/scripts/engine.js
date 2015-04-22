@@ -273,6 +273,7 @@ Tile.World = {
 			},
 			generate: function() {
 				for (var x = 0; x < w; x++) {
+					tiles[0][x] = [];
 					for (var y = 0; y < h; y++) {
 						var r = Math.random()*1000,
 							type;
@@ -299,7 +300,8 @@ Tile.World = {
 						if (type !== 'town') {
 							tile.properties().wetness = r < 950 ? 0 : 6;
 						}
-						tiles[0].push(tile);
+						tiles[0][x][y] = tile;
+						//tiles[0].push(tile);
 					}
 				}
 			}
@@ -331,6 +333,10 @@ Tile.Engine = {
 		// Engine
 		var options = params.options || {},
 			ui = {},
+			camera = {
+				x: Math.floor(canvas.width / params.tilesize / 2),
+				y: Math.floor(canvas.height / params.tilesize / 2),
+			},
 			sprites = {},
 			clicks = [],
 			utils = params.utils || {},
@@ -547,18 +553,32 @@ Tile.Engine = {
 			world: function() {
 				return world;
 			},
+			camera: function(params) {
+				if (params) {
+					camera.x = params.x || camera.x;
+					camera.y = params.y || camera.y;
+				} else {
+					return camera;
+				}
+			},
 			clear: function() {
 				context.clearRect(0, 0, canvas.width, canvas.height);
 			},
 			render: function(world, z) {
 				var self = this;
 				z = z || 0;
-				var objs = world.tiles(z);
-				Tile.async.each(objs, function(obj){
-					if (obj.visible()) {
-						self.draw(obj);
+				var rows = world.tiles(z);
+				for (var x = camera.x - Math.floor(world.width()/2); x < camera.x + Math.round(world.width()/2); x++) {
+					for (var y = camera.y - Math.floor(world.height()/2); y < camera.y + Math.round(world.height()/2); y++) {
+						if (rows[x] && rows[x][y]) {
+							var obj = rows[x][y];
+							if (obj && obj.visible()) {
+								self.draw(obj);
+							}
+						}
 					}
-				});
+				}
+
 				Tile.async.each(objs, function(obj){
 					var as = Tile.tools.keys(actions[obj.type()] || {}).concat(Tile.tools.keys(actions['*'] || {}));
 					Tile.async.each(as, function(name){
