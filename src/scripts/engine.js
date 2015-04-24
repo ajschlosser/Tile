@@ -245,25 +245,26 @@ Tile.World = {
 			},
 			tile: function(x, y, z) {
 				z = z || 0;
-				var ts = tiles[z],
-					l = ts.length,
-					i = 0,
-					t;
-				if (w > h) {
-					for (i = 0; i < l; i++) {
-						t = ts[i];
-						if (t.y() === y && t.x() === x) {
-							return t;
-						}
-					}
-				} else {
-					for (i = 0; i < l; i++) {
-						t = ts[i];
-						if (t.x() === x && t.y() === y) {
-							return t;
-						}
-					}
-				}
+				if (tiles[z][x] && tiles[z][x][y]) return tiles[z][x][y];
+				// var ts = tiles[z],
+				// 	l = ts.length,
+				// 	i = 0,
+				// 	t;
+				// if (w > h) {
+				// 	for (i = 0; i < l; i++) {
+				// 		t = ts[i];
+				// 		if (t.y() === y && t.x() === x) {
+				// 			return t;
+				// 		}
+				// 	}
+				// } else {
+				// 	for (i = 0; i < l; i++) {
+				// 		t = ts[i];
+				// 		if (t.x() === x && t.y() === y) {
+				// 			return t;
+				// 		}
+				// 	}
+				// }
 			},
 			tiles: function(z) {
 				return tiles[z];
@@ -574,52 +575,48 @@ Tile.Engine = {
 							var obj = rows[x][y];
 							if (obj && obj.visible()) {
 								self.draw(obj);
+								var as = Tile.tools.keys(actions[obj.type()] || {}).concat(Tile.tools.keys(actions['*'] || {}));
+								Tile.async.each(as, function(name){
+									function run(a) {
+										if (a.events().length) {
+											Tile.async.each(a.events(), function(event){
+												var type,
+													conditions;
+												if (typeof event === 'object') {
+													type = event.type;
+													conditions = event.conditions;
+												} else {
+													type = event;
+												}
+												if (events[type] && events[type].length) {
+													for (var i = 0; i < events[type].length; i++) {
+														var e = events[type][i];
+														if (e.x === x && e.y === y) {
+															if (e.ready() && ((event.conditions && Tile.tools.contains(e.conditions, conditions)) || !event.conditions)) {
+																events[type].splice(i, 1);
+																a.run(obj);
+															}
+														}
+													}
+												}
+											});
+										} else {
+											a.run(obj);
+										}
+									}
+									var type = actions[obj.type()],
+										any = actions['*'][name];
+									if (type && type[name]) {
+										run(type[name]);
+									} else if (any) {
+										run(any);
+									}
+								});
 							}
 						}
 					}
 				}
 
-				Tile.async.each(objs, function(obj){
-					var as = Tile.tools.keys(actions[obj.type()] || {}).concat(Tile.tools.keys(actions['*'] || {}));
-					Tile.async.each(as, function(name){
-						function run(a) {
-							if (a.events().length) {
-								var x = obj.x(),
-									y = obj.y();
-								Tile.async.each(a.events(), function(event){
-									var type,
-										conditions;
-									if (typeof event === 'object') {
-										type = event.type;
-										conditions = event.conditions;
-									} else {
-										type = event;
-									}
-									if (events[type] && events[type].length) {
-										for (var i = 0; i < events[type].length; i++) {
-											var e = events[type][i];
-											if (e.x === x && e.y === y) {
-												if (e.ready() && ((event.conditions && Tile.tools.contains(e.conditions, conditions)) || !event.conditions)) {
-													events[type].splice(i, 1);
-													a.run(obj);
-												}
-											}
-										}
-									}
-								});
-							} else {
-								a.run(obj);
-							}
-						}
-						var type = actions[obj.type()],
-							any = actions['*'][name];
-						if (type && type[name]) {
-							run(type[name]);
-						} else if (any) {
-							run(any);
-						}
-					});
-				});
 			},
 			run: function() {
 				var self = this;
