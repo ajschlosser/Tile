@@ -9,7 +9,11 @@ var game = Tile.Engine.create({
 	ui: ui,
 	types: types,
 	sprites: sprites,
-	actions: actions
+	actions: actions,
+	world: {
+		width: 50,
+		height: 50
+	}
 });
 
 game.run();

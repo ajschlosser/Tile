@@ -245,26 +245,9 @@ Tile.World = {
 			},
 			tile: function(x, y, z) {
 				z = z || 0;
-				if (tiles[z][x] && tiles[z][x][y]) return tiles[z][x][y];
-				// var ts = tiles[z],
-				// 	l = ts.length,
-				// 	i = 0,
-				// 	t;
-				// if (w > h) {
-				// 	for (i = 0; i < l; i++) {
-				// 		t = ts[i];
-				// 		if (t.y() === y && t.x() === x) {
-				// 			return t;
-				// 		}
-				// 	}
-				// } else {
-				// 	for (i = 0; i < l; i++) {
-				// 		t = ts[i];
-				// 		if (t.x() === x && t.y() === y) {
-				// 			return t;
-				// 		}
-				// 	}
-				// }
+				if (tiles[z][x] && tiles[z][x][y]) {
+					return tiles[z][x][y];
+				}
 			},
 			tiles: function(z) {
 				return tiles[z];
@@ -302,7 +285,6 @@ Tile.World = {
 							tile.properties().wetness = r < 950 ? 0 : 6;
 						}
 						tiles[0][x][y] = tile;
-						//tiles[0].push(tile);
 					}
 				}
 			}
@@ -328,6 +310,9 @@ Tile.Engine = {
 			context = canvas.getContext('2d');
 		canvas.width = params.w || params.width || 0;
 		canvas.height = params.h || params.height || 0;
+		canvas.addEventListener('contextmenu', function(evt){
+			evt.preventDefault();
+		});
 		context.imageSmoothingEnabled = false;
 		container.appendChild(canvas);
 
@@ -348,9 +333,9 @@ Tile.Engine = {
 			actions = { '*': {} },
 			fps = params.fps || 60,
 			tilesize = params.tilesize || 16,
-			world = params.world || Tile.World.create({
-				width : canvas.width / tilesize,
-				height : canvas.height / tilesize,
+			world = Tile.World.create({
+				width : params.world.width || canvas.width / tilesize,
+				height : params.world.height || canvas.height / tilesize,
 				types : params.types || { '*': {} }
 			});
 
@@ -573,8 +558,10 @@ Tile.Engine = {
 					for (var y = camera.y - Math.floor(world.height()/2); y < camera.y + Math.round(world.height()/2); y++) {
 						if (rows[x] && rows[x][y]) {
 							var obj = rows[x][y];
-							if (obj && obj.visible()) {
-								self.draw(obj);
+							if (obj) {
+								if (obj.visible()) {
+									self.draw(obj);
+								}
 								var as = Tile.tools.keys(actions[obj.type()] || {}).concat(Tile.tools.keys(actions['*'] || {}));
 								Tile.async.each(as, function(name){
 									function run(a) {
@@ -606,9 +593,9 @@ Tile.Engine = {
 									}
 									var type = actions[obj.type()],
 										any = actions['*'][name];
-									if (type && type[name]) {
+									if (type && type[name] && (obj.visible() || type[name].always())) {
 										run(type[name]);
-									} else if (any) {
+									} else if (any && (obj.visible() || type[name].always())) {
 										run(any);
 									}
 								});
