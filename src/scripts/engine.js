@@ -606,9 +606,13 @@ Tile.Engine = {
 
 			},
 			run: function() {
-				var self = this;
+				var self = this,
+					then = new Date();
 				self.init(function(){
 					function sequence() {
+						var now = new Date(),
+							currentFps = Math.floor(1000 / (now - then));
+						then = now;
 						self.clear();
 						self.render(world);
 					}
