@@ -510,7 +510,7 @@ Tile.Engine = {
 					}
 					context.drawImage(sprite.img(), obj.x()*tilesize, obj.y()*tilesize, tilesize, tilesize);
 					context.font = '10px sans-serif';
-					context.fillText('('+obj.x()+', '+obj.y()+')',obj.x()*tilesize,obj.y()*tilesize);
+					context.fillText('('+obj.x()+', '+obj.y()+')',obj.x()*tilesize,obj.y()*tilesize+10);
 					if (depth > 0) {
 						context.restore();
 					}
@@ -556,8 +556,8 @@ Tile.Engine = {
 				var self = this;
 				z = z || 0;
 				var rows = world.tiles(z);
-				for (var x = camera.x - Math.floor(world.width()/2); x < camera.x + Math.round(world.width()/2); x++) {
-					for (var y = camera.y - Math.floor(world.height()/2); y < camera.y + Math.round(world.height()/2); y++) {
+				for (var x = camera.x - Math.floor(canvas.width/tilesize/2); x < camera.x + Math.round(canvas.width/tilesize/2); x++) {
+					for (var y = camera.y - Math.floor(canvas.height/tilesize/2); y < camera.y + Math.round(canvas.height/tilesize/2); y++) {
 						if (rows[x] && rows[x][y]) {
 							var obj = rows[x][y];
 							if (obj) {
