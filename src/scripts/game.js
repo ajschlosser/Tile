@@ -4,7 +4,7 @@
 var game = Tile.Engine.create({
 	w: 640,
 	h: 480,
-	tilesize: 32,
+	tilesize: 64,
 	utils: utils,
 	ui: ui,
 	types: types,

@@ -49,7 +49,12 @@ var actions = [
 	},
 	{
 		name: 'info',
-		events: ['click'],
+		events: [{
+			type: 'click',
+			conditions: {
+				shift: true
+			}
+		}],
 		action: function(obj){
 			var name = obj.type();
 			ui.dialog.title(game.utils().capitalizeFirstLetter(name));

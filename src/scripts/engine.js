@@ -344,7 +344,7 @@ Tile.Engine = {
 			var e = document.createElement('div'),
 				buttons = params.ui[uid].buttons ? Tile.tools.keys(params.ui[uid].buttons) : null;
 			e.id = uid;
-			e.style.display = 'none';
+			e.style.display = params.ui[uid].display || 'none';
 			var title = document.createElement('h1');
 			title.className = 'title ' + uid;
 			e.appendChild(title);
@@ -509,6 +509,8 @@ Tile.Engine = {
 						context.globalAlpha = 1.0 - parseFloat('0.' + depth);
 					}
 					context.drawImage(sprite.img(), obj.x()*tilesize, obj.y()*tilesize, tilesize, tilesize);
+					context.font = '10px sans-serif';
+					context.fillText('('+obj.x()+', '+obj.y()+')',obj.x()*tilesize,obj.y()*tilesize);
 					if (depth > 0) {
 						context.restore();
 					}
@@ -606,13 +608,9 @@ Tile.Engine = {
 
 			},
 			run: function() {
-				var self = this,
-					then = new Date();
+				var self = this;
 				self.init(function(){
 					function sequence() {
-						var now = new Date(),
-							currentFps = Math.floor(1000 / (now - then));
-						then = now;
 						self.clear();
 						self.render(world);
 					}
