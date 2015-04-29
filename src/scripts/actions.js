@@ -68,14 +68,6 @@ var actions = [
 			ui.dialog.content(content);
 			ui.dialog.show();
 		}
-	},
-	{
-		name: 'move',
-		events: ['click'],
-		action: function(obj){
-			console.log('tile',obj.x(),obj.y(),'camera',game.camera().x,game.camera().y);
-			game.camera({x: obj.x(), y: obj.y()});
-		}
 	}
 ];
 

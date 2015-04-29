@@ -502,15 +502,45 @@ Tile.Engine = {
 			},
 			draw: function(obj) {
 				var sprite = sprites[obj.type()],
-					depth = obj.depth();
+					depth = obj.depth(),
+					x = obj.x(),
+					y = obj.y(),
+					w = canvas.width/tilesize/2,
+					h = canvas.height/tilesize/2;
 				if (sprite) {
 					if (depth > 0) {
 						context.save();
 						context.globalAlpha = 1.0 - parseFloat('0.' + depth);
 					}
-					context.drawImage(sprite.img(), obj.x()*tilesize, obj.y()*tilesize, tilesize, tilesize);
-					context.font = '10px sans-serif';
-					context.fillText('('+obj.x()+', '+obj.y()+')',obj.x()*tilesize,obj.y()*tilesize+10);
+					var offset = {};
+					if (x <= camera.x && y <= camera.y) {
+						offset = {
+							x: (w - (camera.x - x)),
+							y: (h - (camera.y - y))
+						};
+					}
+					if (x <= camera.x && y >= camera.y) {
+						offset = {
+							x: (w - (camera.x - x)),
+							y: (h + (y - camera.y))
+						};
+					}
+					if (x >= camera.x && y >= camera.y) {
+						offset = {
+							x: (w + (x - camera.x)),
+							y: (h + (y - camera.y))
+						};
+					}
+					if (x >= camera.x && y <= camera.y) {
+						offset = {
+							x: (w + (x - camera.x)),
+							y: (h - (camera.y - y))
+						};
+					}
+					context.drawImage(sprite.img(), offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
+					// context.font = '10px sans-serif';
+					// context.fillStyle = 'white';
+					// context.fillText('('+offset.x+', '+offset.y+')', offset.x*tilesize,offset.y*tilesize+10);
 					if (depth > 0) {
 						context.restore();
 					}
@@ -543,8 +573,8 @@ Tile.Engine = {
 			},
 			camera: function(params) {
 				if (params) {
-					camera.x = params.x || camera.x;
-					camera.y = params.y || camera.y;
+					camera.x = params.x;
+					camera.y = params.y;
 				} else {
 					return camera;
 				}
@@ -556,8 +586,8 @@ Tile.Engine = {
 				var self = this;
 				z = z || 0;
 				var rows = world.tiles(z);
-				for (var x = camera.x - Math.floor(canvas.width/tilesize/2); x < camera.x + Math.round(canvas.width/tilesize/2); x++) {
-					for (var y = camera.y - Math.floor(canvas.height/tilesize/2); y < camera.y + Math.round(canvas.height/tilesize/2); y++) {
+				for (var x = camera.x - Math.floor(canvas.width/tilesize/2); x <= camera.x + Math.round(canvas.width/tilesize/2); x++) {
+					for (var y = camera.y - Math.floor(canvas.height/tilesize/2); y <= camera.y + Math.round(canvas.height/tilesize/2); y++) {
 						if (rows[x] && rows[x][y]) {
 							var obj = rows[x][y];
 							if (obj) {
