@@ -505,8 +505,8 @@ Tile.Engine = {
 					depth = obj.depth(),
 					x = obj.x(),
 					y = obj.y(),
-					w = canvas.width/tilesize/2,
-					h = canvas.height/tilesize/2;
+					w = Math.floor(canvas.width/tilesize/2),
+					h = Math.floor(canvas.height/tilesize/2);
 				if (sprite) {
 					if (depth > 0) {
 						context.save();
