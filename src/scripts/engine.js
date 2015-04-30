@@ -327,12 +327,8 @@ Tile.Engine = {
 			clicks = [],
 			utils = params.utils || {},
 			events = options.events || { 
-				click: {},
-				mousemove: {},
-				keydown: {
-					surface: 'window',
-					prevent: false
-				}
+				click: [],
+				mousemove: []
 			},
 			actions = { '*': {} },
 			fps = params.fps || 60,
@@ -447,14 +443,7 @@ Tile.Engine = {
 
 		// EVENTS
 		Tile.async.each(Object.getOwnPropertyNames(events), function(evt) {
-			var surfaces = {
-				canvas: canvas,
-				window: window
-			};
-			if (!events[evt].queue) {
-				events[evt].queue = [];
-			}
-			surfaces[events[evt].surface || 'canvas'].addEventListener(evt, function(e){
+			canvas.addEventListener(evt, function(e){
 				var ready = true;
 				if (options.dblclick) {
 					ready = false;
@@ -466,7 +455,7 @@ Tile.Engine = {
 						ready = true;
 					}
 				}
-				events[evt].queue.push({
+				events[evt].push({
 					x : Math.floor(e.offsetX / tilesize),
 					y : Math.floor(e.offsetY / tilesize),
 					conditions : {
@@ -479,9 +468,7 @@ Tile.Engine = {
 						return ready;
 					}
 				});
-				if (events[evt].prevent !== false) {
-					e.preventDefault();
-				}
+				e.preventDefault();
 			});         
 		});
 
@@ -607,11 +594,11 @@ Tile.Engine = {
 								if (obj.visible()) {
 									self.draw(obj);
 								}
-								var acts = Tile.tools.keys(actions[obj.type()] || {}).concat(Tile.tools.keys(actions['*'] || {}));
-								Tile.async.each(acts, function(name){
-									function run(action) {
-										if (action.events().length) {
-											Tile.async.each(action.events(), function(event){
+								var as = Tile.tools.keys(actions[obj.type()] || {}).concat(Tile.tools.keys(actions['*'] || {}));
+								Tile.async.each(as, function(name){
+									function run(a) {
+										if (a.events().length) {
+											Tile.async.each(a.events(), function(event){
 												var type,
 													conditions;
 												if (typeof event === 'object') {
@@ -620,20 +607,20 @@ Tile.Engine = {
 												} else {
 													type = event;
 												}
-												if (events[type] && events[type].queue && events[type].queue.length) {
-													for (var i = 0; i < events[type].queue.length; i++) {
-														var e = events[type].queue[i];
+												if (events[type] && events[type].length) {
+													for (var i = 0; i < events[type].length; i++) {
+														var e = events[type][i];
 														if (e.x === x && e.y === y) {
 															if (e.ready() && ((event.conditions && Tile.tools.contains(e.conditions, conditions)) || !event.conditions)) {
-																events[type].queue.splice(i, 1);
-																action.run(obj);
+																events[type].splice(i, 1);
+																a.run(obj);
 															}
 														}
 													}
 												}
 											});
 										} else {
-											action.run(obj);
+											a.run(obj);
 										}
 									}
 									var type = actions[obj.type()],
@@ -648,6 +635,7 @@ Tile.Engine = {
 						}
 					}
 				}
+
 			},
 			run: function() {
 				var self = this;
