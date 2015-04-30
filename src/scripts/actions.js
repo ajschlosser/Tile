@@ -68,6 +68,13 @@ var actions = [
 			ui.dialog.content(content);
 			ui.dialog.show();
 		}
+	},
+	{
+		name: 'move',
+		events: ['keydown'],
+		action: function() {
+			console.log('k');
+		}
 	}
 ];
 
