@@ -2,8 +2,8 @@
 // BEGIN GAME
 
 var game = Tile.Engine.create({
-	w: 640,
-	h: 480,
+	width: 640,
+	height: 480,
 	tilesize: 32,
 	utils: utils,
 	ui: ui,

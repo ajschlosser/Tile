@@ -226,8 +226,8 @@ Tile.Obj = {
 Tile.World = {
 	create: function(params) {
 		params = params || {};
-		var w = params.w || params.width,
-			h = params.h || params.height,
+		var width = params.width,
+			height = params.height,
 			types = function(t) {
 				if (params.types[t]) {
 					return params.types[t];
@@ -238,10 +238,10 @@ Tile.World = {
 			tiles = { 0: [] };
 		return  {
 			width: function() {
-				return w;
+				return width;
 			},
 			height: function() {
-				return h;
+				return height;
 			},
 			tile: function(x, y, z) {
 				z = z || 0;
@@ -256,9 +256,9 @@ Tile.World = {
 				tiles[tile.z()].push(tile);
 			},
 			generate: function() {
-				for (var x = 0; x < w; x++) {
+				for (var x = 0; x < width; x++) {
 					tiles[0][x] = [];
-					for (var y = 0; y < h; y++) {
+					for (var y = 0; y < height; y++) {
 						var r = Math.random()*1000,
 							type;
 						if (r < 850) {
@@ -301,6 +301,39 @@ Tile.World = {
 Tile.Engine = {
 	create: function(params) {
 
+		// PRIVATE FUNCTIONS
+
+		function getOffset(o) {
+			var x = typeof o.x === 'function' ? o.x() : o.x,
+				y = typeof o.y === 'function' ? o.y() : o.y,
+				w = Math.floor(view.width/2),
+				h = Math.floor(view.height/2);
+			if (x <= camera.x && y <= camera.y) {
+				return {
+					x: (w - (camera.x - x)),
+					y: (h - (camera.y - y))
+				};
+			}
+			if (x <= camera.x && y >= camera.y) {
+				return {
+					x: (w - (camera.x - x)),
+					y: (h + (y - camera.y))
+				};
+			}
+			if (x >= camera.x && y >= camera.y) {
+				return {
+					x: (w + (x - camera.x)),
+					y: (h + (y - camera.y))
+				};
+			}
+			if (x >= camera.x && y <= camera.y) {
+				return {
+					x: (w + (x - camera.x)),
+					y: (h - (camera.y - y))
+				};
+			}
+		}
+
 		// INITIALIZE PRIVATE VARIABLES
 
 		// Canvas
@@ -318,10 +351,15 @@ Tile.Engine = {
 
 		// Engine
 		var options = params.options || {},
+			tilesize = params.tilesize || 16,
 			ui = {},
+			view = {
+				width: Math.floor(canvas.width / tilesize),
+				height: Math.floor(canvas.height / tilesize)
+			},
 			camera = {
-				x: Math.floor(canvas.width / params.tilesize / 2),
-				y: Math.floor(canvas.height / params.tilesize / 2),
+				x: Math.floor(canvas.width / tilesize / 2),
+				y: Math.floor(canvas.height / tilesize / 2),
 			},
 			sprites = {},
 			clicks = [],
@@ -332,10 +370,9 @@ Tile.Engine = {
 			},
 			actions = { '*': {} },
 			fps = params.fps || 60,
-			tilesize = params.tilesize || 16,
 			world = Tile.World.create({
-				width : params.world.width || canvas.width / tilesize,
-				height : params.world.height || canvas.height / tilesize,
+				width : params.world.width || view.width,
+				height : params.world.height || view.height,
 				types : params.types || { '*': {} }
 			});
 
@@ -399,37 +436,26 @@ Tile.Engine = {
 
 		// ACTIONS
 		Tile.async.each(params.actions, function(a){
-				var name = a.name || Object.getOwnPropertyNames(actions).length + 1,
-					action = a.action,
-					types = [],
-					events = a.events || [];
-				Tile.async.each(Tile.tools.keys(params.types), function(type){
-					if (params.types[type].actions && params.types[type].actions.indexOf(name) !== -1) {
-						types.push(type);
-					}
-				});
-				if (!name) {
-					throw new Error('Actions require a name');
-				} else if (typeof action !== 'function') {
-					throw new Error('The ' + name + ' action needs to be a function');
+			var name = a.name || Object.getOwnPropertyNames(actions).length + 1,
+				action = a.action,
+				types = [],
+				events = a.events || [];
+			Tile.async.each(Tile.tools.keys(params.types), function(type){
+				if (params.types[type].actions && params.types[type].actions.indexOf(name) !== -1) {
+					types.push(type);
 				}
-				if (types && types.length) {
-					Tile.async.each(types, function(type){
-						if (!actions[type]) {
-							actions[type] = {};
-						}
-						actions[type][name] = {
-							run: action,
-							types: function() {
-								return types;
-							},
-							events: function() {
-								return events;
-							}
-						};
-					});
-				} else {
-					actions['*'][name] = {
+			});
+			if (!name) {
+				throw new Error('Actions require a name');
+			} else if (typeof action !== 'function') {
+				throw new Error('The ' + name + ' action needs to be a function');
+			}
+			if (types && types.length) {
+				Tile.async.each(types, function(type){
+					if (!actions[type]) {
+						actions[type] = {};
+					}
+					actions[type][name] = {
 						run: action,
 						types: function() {
 							return types;
@@ -438,7 +464,18 @@ Tile.Engine = {
 							return events;
 						}
 					};
-				}
+				});
+			} else {
+				actions['*'][name] = {
+					run: action,
+					types: function() {
+						return types;
+					},
+					events: function() {
+						return events;
+					}
+				};
+			}
 		});
 
 		// EVENTS
@@ -455,9 +492,16 @@ Tile.Engine = {
 						ready = true;
 					}
 				}
+				var offset = getOffset({
+					x: Math.floor(e.offsetX / tilesize),
+					y: Math.floor(e.offsetY / tilesize)
+				});
+				if (evt !== 'mousemove') {
+					console.log(offset.x,offset.y);
+				}
 				events[evt].push({
-					x : Math.floor(e.offsetX / tilesize),
-					y : Math.floor(e.offsetY / tilesize),
+					x : offset.x,
+					y : offset.y,
 					conditions : {
 						alt : e.altKey,
 						shift : e.shiftKey,
@@ -502,41 +546,13 @@ Tile.Engine = {
 			},
 			draw: function(obj) {
 				var sprite = sprites[obj.type()],
-					depth = obj.depth(),
-					x = obj.x(),
-					y = obj.y(),
-					w = Math.floor(canvas.width/tilesize/2),
-					h = Math.floor(canvas.height/tilesize/2);
+					depth = obj.depth();
 				if (sprite) {
 					if (depth > 0) {
 						context.save();
 						context.globalAlpha = 1.0 - parseFloat('0.' + depth);
 					}
-					var offset = {};
-					if (x <= camera.x && y <= camera.y) {
-						offset = {
-							x: (w - (camera.x - x)),
-							y: (h - (camera.y - y))
-						};
-					}
-					if (x <= camera.x && y >= camera.y) {
-						offset = {
-							x: (w - (camera.x - x)),
-							y: (h + (y - camera.y))
-						};
-					}
-					if (x >= camera.x && y >= camera.y) {
-						offset = {
-							x: (w + (x - camera.x)),
-							y: (h + (y - camera.y))
-						};
-					}
-					if (x >= camera.x && y <= camera.y) {
-						offset = {
-							x: (w + (x - camera.x)),
-							y: (h - (camera.y - y))
-						};
-					}
+					var offset = getOffset(obj);
 					context.drawImage(sprite.img(), offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
 					// context.font = '10px sans-serif';
 					// context.fillStyle = 'white';
