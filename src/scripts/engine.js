@@ -301,39 +301,6 @@ Tile.World = {
 Tile.Engine = {
 	create: function(params) {
 
-		// PRIVATE FUNCTIONS
-
-		function getOffset(o) {
-			var x = typeof o.x === 'function' ? o.x() : o.x,
-				y = typeof o.y === 'function' ? o.y() : o.y,
-				w = Math.floor(view.width/2),
-				h = Math.floor(view.height/2);
-			if (x <= camera.x && y <= camera.y) {
-				return {
-					x: (w - (camera.x - x)),
-					y: (h - (camera.y - y))
-				};
-			}
-			if (x <= camera.x && y >= camera.y) {
-				return {
-					x: (w - (camera.x - x)),
-					y: (h + (y - camera.y))
-				};
-			}
-			if (x >= camera.x && y >= camera.y) {
-				return {
-					x: (w + (x - camera.x)),
-					y: (h + (y - camera.y))
-				};
-			}
-			if (x >= camera.x && y <= camera.y) {
-				return {
-					x: (w + (x - camera.x)),
-					y: (h - (camera.y - y))
-				};
-			}
-		}
-
 		// INITIALIZE PRIVATE VARIABLES
 
 		// Canvas
@@ -492,10 +459,35 @@ Tile.Engine = {
 						ready = true;
 					}
 				}
-				var offset = getOffset({
-					x: Math.floor(e.offsetX / tilesize),
-					y: Math.floor(e.offsetY / tilesize)
-				});
+				var x = Math.floor(e.offsetX / tilesize),
+					y = Math.floor(e.offsetY / tilesize),
+					w = Math.floor(view.width/2),
+					h = Math.floor(view.height/2),
+					offset;
+				if (x <= camera.x && y <= camera.y) {
+					offset = {
+						x: (camera.x - (w - x)),
+						y: (camera.y - (h - y))
+					};
+				}
+				if (x <= camera.x && y >= camera.y) {
+					offset = {
+						x: (camera.x - (w - x)),
+						y: (camera.y + (y - h))
+					};
+				}
+				if (x >= camera.x && y >= camera.y) {
+					offset = {
+						x: (camera.x + (x - w)),
+						y: (camera.y + (y - h))
+					};
+				}
+				if (x >= camera.x && y <= camera.y) {
+					offset = {
+						x: (camera.x + (x - w)),
+						y: (camera.y - (h - y))
+					};
+				}
 				if (evt !== 'mousemove') {
 					console.log(offset.x,offset.y);
 				}
@@ -552,11 +544,36 @@ Tile.Engine = {
 						context.save();
 						context.globalAlpha = 1.0 - parseFloat('0.' + depth);
 					}
-					var offset = getOffset(obj);
+					var x = obj.x(),
+						y = obj.y(),
+						w = Math.floor(view.width/2),
+						h = Math.floor(view.height/2),
+						offset;
+					if (x <= camera.x && y <= camera.y) {
+						offset = {
+							x: (w - (camera.x - x)),
+							y: (h - (camera.y - y))
+						};
+					}
+					if (x <= camera.x && y >= camera.y) {
+						offset = {
+							x: (w - (camera.x - x)),
+							y: (h + (y - camera.y))
+						};
+					}
+					if (x >= camera.x && y >= camera.y) {
+						offset = {
+							x: (w + (x - camera.x)),
+							y: (h + (y - camera.y))
+						};
+					}
+					if (x >= camera.x && y <= camera.y) {
+						offset = {
+							x: (w + (x - camera.x)),
+							y: (h - (camera.y - y))
+						};
+					}
 					context.drawImage(sprite.img(), offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
-					// context.font = '10px sans-serif';
-					// context.fillStyle = 'white';
-					// context.fillText('('+offset.x+', '+offset.y+')', offset.x*tilesize,offset.y*tilesize+10);
 					if (depth > 0) {
 						context.restore();
 					}
