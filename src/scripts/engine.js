@@ -488,9 +488,6 @@ Tile.Engine = {
 						y: (camera.y - (h - y))
 					};
 				}
-				if (evt !== 'mousemove') {
-					console.log(offset.x,offset.y);
-				}
 				events[evt].push({
 					x : offset.x,
 					y : offset.y,
