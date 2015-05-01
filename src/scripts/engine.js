@@ -525,6 +525,22 @@ Tile.Engine = {
 			sprite: function(sprite) {
 				sprites[sprite.type()] = sprite;
 			},
+			tilesize: function(n) {
+
+				if (Number.isInteger(n)) {
+					tilesize = n;
+					view = {
+						width: Math.floor(canvas.width / tilesize),
+						height: Math.floor(canvas.height / tilesize)
+					};
+					camera = {
+						x: Math.floor(canvas.width / tilesize / 2),
+						y: Math.floor(canvas.height / tilesize / 2),
+					};
+				} else {
+					return tilesize;
+				}
+			},
 			init: function(callback) {
 				var types = Object.getOwnPropertyNames(sprites);
 				world.generate();
