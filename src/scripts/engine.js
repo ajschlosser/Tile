@@ -8,6 +8,10 @@
 // BEGIN TOOLS
 
 Tile.tools = $ = {
+	any: function(arr) {
+		var i = Math.floor(Math.random()*arr.length);
+		return arr[i];
+	},
 	assign: function(o1, o2) {
 		return this.extend(o1, o2, true);
 	},
@@ -88,6 +92,10 @@ Tile.tools = $ = {
 		}, function(err) {
 			callback(err, results);
 		});
+	},
+	tug: function(arr) {
+		var i = Math.floor(Math.random()*arr.length);
+		return arr.splice(i,1)[0];
 	}
 };
 
@@ -257,12 +265,15 @@ Tile.World = {
 			put: function(tile) {
 				tiles[tile.z()].push(tile);
 			},
-			throughout: function(method) {
+			throughout: function(fn) {
 				for (var x = 0; x < width; x++) {
 					for (var y = 0; y < height; y++) {
-						method(x, y);
+						fn(x, y);
 					}
 				}
+			},
+			everywhere: function(fn) {
+				fn($.tug(tiles[0][0]), $.tug(tiles[0][1]));
 			},
 			generate: function() {
 				var self = this;
@@ -296,14 +307,10 @@ Tile.World = {
 						tiles[0][x][y] = tile;
 					}
 				}
-				self.throughout(function(x, y){
-					var obj = self.tile(x, y);
-					if (Tile.Obj.hasNeighborOfType(obj, 'town', 2)) {
-						if (obj.type() !== 'town') {
-							if (Math.random()*1000 > 300) obj.type('farm');
-						}
-					} else if (Tile.Obj.hasNeighborOfType(obj, 'water', 2) > 4) {
-						if (Math.random()*1000 > 150) obj.type('water');
+				self.everywhere(function(x, y){
+					var t = tiles[0][x][y];
+					if (t.type() === 'town') {
+						console.log(x,y);
 					}
 				});
 			}
