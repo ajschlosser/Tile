@@ -5,9 +5,28 @@
 (function(Tile, undefined){
 
 // --------------------------------------------------
-// ASYNC
+// BEGIN TOOLS
 
-Tile.async = {
+Tile.tools = $ = {
+	assign: function(o1, o2) {
+		return this.extend(o1, o2, true);
+	},
+	clone: function(o) {
+		var x = {},
+			keys = Object.getOwnPropertyNames(o);
+		keys.forEach(function(k) {
+			x[k] = o[k];
+		});
+		return x;
+	},
+	contains: function(o1, o2) {
+		var keys = Object.getOwnPropertyNames(o2),
+			contains;
+		keys.forEach(function(k) {
+			contains = o1[k] === o2[k];
+		});
+		return contains;
+	},
 	each: function (arr, iterator, callback) {
 		function only_once(fn) {
 			var called = false;
@@ -38,6 +57,22 @@ Tile.async = {
 			}
 		}
 	},
+	extend: function(o1, o2, assign) {
+		var keys = Object.getOwnPropertyNames(o2);
+		keys.forEach(function(k) {
+			if (!o1[k]) {
+				o1[k] = o2[k];
+			} else if (assign === true) {
+				o1[k] = o2[k];
+			}
+		});
+		return o1;
+	},
+	keys: function(o) {
+		if (typeof o === 'object') {
+			return Object.getOwnPropertyNames(o);
+		}
+	},
 	parallel: function(tasks, callback) {
 		callback = callback || function() {};
 		var results = {};
@@ -53,44 +88,6 @@ Tile.async = {
 		}, function(err) {
 			callback(err, results);
 		});
-	}
-};
-
-// END ASYNC
-// --------------------------------------------------
-
-// --------------------------------------------------
-// BEGIN TOOLS
-
-Tile.tools = {
-	extend: function(o1, o2) {
-		var keys = Object.getOwnPropertyNames(o2);
-		keys.forEach(function(k) {
-			if (!o1[k]) o1[k] = o2[k];
-		});
-		return o1;
-	},
-	clone: function(o) {
-		var x = {},
-			keys = Object.getOwnPropertyNames(o);
-		keys.forEach(function(k) {
-			x[k] = o[k];
-		});
-		return x;
-	},
-	contains: function(o1, o2) {
-		var keys = Object.getOwnPropertyNames(o2),
-			contains;
-		keys.forEach(function(k) {
-			contains = o1[k] === o2[k];
-		});
-		return contains;
-	},
-	keys: function(o) {
-		if (typeof o !== 'object') {
-			throw new Error(o + ' is not an object');
-		}
-		return Object.getOwnPropertyNames(o);
 	}
 };
 
@@ -142,6 +139,19 @@ Tile.Sprite = {
 // OBJ
 
 Tile.Obj = {
+	hasNeighborOfType: function(obj, type, range) {
+		range = range || 1;
+		var count = 0;
+		for (var x = obj.x() - range; x < obj.x() + range; x++) {
+			for (var y = obj.y() - range; y < obj.y() + range; y++) {
+				var o = game.world().tile(x,y,obj.z() || 0);
+				if (o && o.type() === type) {
+					count++;
+				}
+			}
+		}
+		return count;
+	},
 	create: function(params) {
 		params = params || {};
 		var x = params.x,
@@ -151,8 +161,7 @@ Tile.Obj = {
 			depth = params.depth || 0,
 			type = params.type,
 			visible = (params.visible === true || params.visible === false) ? params.visible : true,
-			actions = params.actions || [],
-			properties = Tile.tools.extend({}, params.properties);
+			properties = $.extend({}, params.properties);
 		return {
 			visible: function(b) {
 				if (typeof b === 'boolean') {
@@ -194,13 +203,6 @@ Tile.Obj = {
 					depth = n;
 				} else {
 					return depth;
-				}
-			},
-			actions: function(action) {
-				if (typeof action === 'function') {
-					actions.push(action);
-				} else {
-					return actions;
 				}
 			},
 			properties: function() {
@@ -255,7 +257,15 @@ Tile.World = {
 			put: function(tile) {
 				tiles[tile.z()].push(tile);
 			},
+			throughout: function(method) {
+				for (var x = 0; x < width; x++) {
+					for (var y = 0; y < height; y++) {
+						method(x, y);
+					}
+				}
+			},
 			generate: function() {
+				var self = this;
 				for (var x = 0; x < width; x++) {
 					tiles[0][x] = [];
 					for (var y = 0; y < height; y++) {
@@ -276,7 +286,6 @@ Tile.World = {
 							x : x,
 							y : y,
 							type : type,
-							actions : ['wetten', 'flood', 'deepen', 'grow', 'info'],
 							height : type === 'grass' ? 7 : 6,
 							depth : type === 'water' ? 1 : 0,
 							properties : types(type)
@@ -287,6 +296,16 @@ Tile.World = {
 						tiles[0][x][y] = tile;
 					}
 				}
+				self.throughout(function(x, y){
+					var obj = self.tile(x, y);
+					if (Tile.Obj.hasNeighborOfType(obj, 'town', 2)) {
+						if (obj.type() !== 'town') {
+							if (Math.random()*1000 > 300) obj.type('farm');
+						}
+					} else if (Tile.Obj.hasNeighborOfType(obj, 'water', 2) > 4) {
+						if (Math.random()*1000 > 150) obj.type('water');
+					}
+				});
 			}
 		};
 	}
@@ -344,9 +363,9 @@ Tile.Engine = {
 			});
 
 		// UI
-		Tile.async.each(Tile.tools.keys(params.ui), function(uid){
+		$.each($.keys(params.ui), function(uid){
 			var e = document.createElement('div'),
-				buttons = params.ui[uid].buttons ? Tile.tools.keys(params.ui[uid].buttons) : null;
+				buttons = params.ui[uid].buttons ? $.keys(params.ui[uid].buttons) : null;
 			e.id = uid;
 			e.style.display = params.ui[uid].display || 'none';
 			var title = document.createElement('h1');
@@ -375,7 +394,7 @@ Tile.Engine = {
 			}
 			container.appendChild(e);
 			params.ui[uid].id = e;
-			Tile.tools.extend(params.ui[uid], {
+			$.extend(params.ui[uid], {
 				title: function(s) {
 					title.innerText = s;
 				},
@@ -397,17 +416,17 @@ Tile.Engine = {
 		});
 
 		// SPRITES
-		Tile.async.each(params.sprites, function(sprite){
+		$.each(params.sprites, function(sprite){
 			sprites[sprite.type] = Tile.Sprite.create(sprite);
 		});
 
 		// ACTIONS
-		Tile.async.each(params.actions, function(a){
+		$.each(params.actions, function(a){
 			var name = a.name || Object.getOwnPropertyNames(actions).length + 1,
 				action = a.action,
 				types = [],
 				events = a.events || [];
-			Tile.async.each(Tile.tools.keys(params.types), function(type){
+			$.each($.keys(params.types), function(type){
 				if (params.types[type].actions && params.types[type].actions.indexOf(name) !== -1) {
 					types.push(type);
 				}
@@ -418,7 +437,7 @@ Tile.Engine = {
 				throw new Error('The ' + name + ' action needs to be a function');
 			}
 			if (types && types.length) {
-				Tile.async.each(types, function(type){
+				$.each(types, function(type){
 					if (!actions[type]) {
 						actions[type] = {};
 					}
@@ -446,7 +465,7 @@ Tile.Engine = {
 		});
 
 		// EVENTS
-		Tile.async.each(Object.getOwnPropertyNames(events), function(evt) {
+		$.each(Object.getOwnPropertyNames(events), function(evt) {
 			canvas.addEventListener(evt, function(e){
 				var ready = true;
 				if (options.dblclick) {
@@ -541,7 +560,7 @@ Tile.Engine = {
 			init: function(callback) {
 				var types = Object.getOwnPropertyNames(sprites);
 				world.generate();
-				Tile.async.each(types, function(type, next){
+				$.each(types, function(type, next){
 					sprites[type].loaded(function(){
 						next();
 					});
@@ -597,7 +616,7 @@ Tile.Engine = {
 			style: function(css) {
 				if (typeof css === 'object') {
 					var props = Object.getOwnPropertyNames(css);
-					Tile.async.each(props, function(prop) {
+					$.each(props, function(prop) {
 						prop = prop.split('-');
 						var camelCase = prop[0];
 						var l = prop.length;
@@ -630,53 +649,54 @@ Tile.Engine = {
 			},
 			render: function(world, z) {
 				var self = this;
+				function run(action) {
+					if (action.events().length) {
+						$.each(action.events(), function(event){
+							var type,
+								conditions;
+							if (typeof event === 'object') {
+								type = event.type;
+								conditions = event.conditions;
+							} else {
+								type = event;
+							}
+							if (events[type] && events[type].length) {
+								for (var i = 0; i < events[type].length; i++) {
+									var e = events[type][i];
+									if (e.x === x && e.y === y) {
+										if (e.ready() && ((event.conditions && $.contains(e.conditions, conditions)) || !event.conditions)) {
+											events[type].splice(i, 1);
+											action.run(obj);
+										}
+									}
+								}
+							}
+						});
+					} else {
+						action.run(obj);
+					}
+				}
+				function process(name) {
+					var type = actions[obj.type()],
+						any = actions['*'][name];
+					if (type && type[name] && (obj.visible() || type[name].always())) {
+						run(type[name]);
+					} else if (any && (obj.visible() || type[name].always())) {
+						run(any);
+					}
+				}
 				z = z || 0;
 				var rows = world.tiles(z);
-				for (var x = camera.x - Math.floor(canvas.width/tilesize/2); x <= camera.x + Math.round(canvas.width/tilesize/2); x++) {
-					for (var y = camera.y - Math.floor(canvas.height/tilesize/2); y <= camera.y + Math.round(canvas.height/tilesize/2); y++) {
+				for (var x = camera.x - view.width/2; x <= camera.x + view.width/2; x++) {
+					for (var y = camera.y - view.height/2; y <= camera.y + view.height/2; y++) {
 						if (rows[x] && rows[x][y]) {
 							var obj = rows[x][y];
 							if (obj) {
 								if (obj.visible()) {
 									self.draw(obj);
 								}
-								var as = Tile.tools.keys(actions[obj.type()] || {}).concat(Tile.tools.keys(actions['*'] || {}));
-								Tile.async.each(as, function(name){
-									function run(a) {
-										if (a.events().length) {
-											Tile.async.each(a.events(), function(event){
-												var type,
-													conditions;
-												if (typeof event === 'object') {
-													type = event.type;
-													conditions = event.conditions;
-												} else {
-													type = event;
-												}
-												if (events[type] && events[type].length) {
-													for (var i = 0; i < events[type].length; i++) {
-														var e = events[type][i];
-														if (e.x === x && e.y === y) {
-															if (e.ready() && ((event.conditions && Tile.tools.contains(e.conditions, conditions)) || !event.conditions)) {
-																events[type].splice(i, 1);
-																a.run(obj);
-															}
-														}
-													}
-												}
-											});
-										} else {
-											a.run(obj);
-										}
-									}
-									var type = actions[obj.type()],
-										any = actions['*'][name];
-									if (type && type[name] && (obj.visible() || type[name].always())) {
-										run(type[name]);
-									} else if (any && (obj.visible() || type[name].always())) {
-										run(any);
-									}
-								});
+								var todo = $.keys(actions[obj.type()] || {}).concat($.keys(actions['*'] || {}));
+								$.each(todo, process);
 							}
 						}
 					}
