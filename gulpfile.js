@@ -1,6 +1,7 @@
 var gulp = require('gulp'),
 	concat = require('gulp-concat'),
 	es = require('event-stream'),
+	rem = require('gulp-remove-code'),
 	jshint = require('gulp-jshint'),
 	stylish = require('jshint-stylish'),
 	less = require('gulp-less'),
@@ -62,6 +63,7 @@ gulp.task('scripts', function(){
 		.pipe(jshint())
 		.pipe(jshint.reporter(stylish))
 		.pipe(concat(conf.scripts.name))
+		.pipe(rem({ production: true }))
 		.pipe(gulp.dest(conf.scripts.dist));
 });
 

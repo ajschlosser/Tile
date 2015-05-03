@@ -10,6 +10,7 @@
     "gulp-concat": "^2.5.2",
     "gulp-jshint": "^1.10.0",
     "gulp-less": "^3.0.2",
+    "gulp-remove-code": "^1.0.2",
     "gulp-watch": "^4.2.2",
     "jshint-stylish": "^1.0.1"
   }
