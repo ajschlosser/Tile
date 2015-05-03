@@ -34,7 +34,7 @@ var game = Tile.Engine.create({
 	sprites: sprites,
 	actions: actions,
 	world: {
-		width: 50,
+		width: 150,
 		height: 50
 	}
 });
