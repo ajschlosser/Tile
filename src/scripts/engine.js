@@ -150,8 +150,8 @@ Tile.Obj = {
 	hasNeighborOfType: function(obj, type, range) {
 		range = range || 1;
 		var count = 0;
-		for (var x = obj.x() - range; x < obj.x() + range; x++) {
-			for (var y = obj.y() - range; y < obj.y() + range; y++) {
+		for (var x = obj.x() - range; x <= obj.x() + range; x++) {
+			for (var y = obj.y() - range; y <= obj.y() + range; y++) {
 				var o = game.world().tile(x,y,obj.z() || 0);
 				if (o && o.type() === type) {
 					count++;
@@ -337,17 +337,19 @@ Tile.World = {
 							type = t.type(),
 							n = Tile.Obj.hasNeighborOfType,
 							water = n(t, 'water', 2),
-							grass = n(t, 'grass', 2);
-						if (water > 2) {
+							grass = n(t, 'grass', 1),
+							town = n(t, 'town', 12);
+						if (water > 3) {
 							t.type('water');
 							t.depth(1);
 							t.height(6);
 						} else if (type === 'water') {
 							t.type('grass');
 						}
-						if (type !== 'town' && n(t, 'town', 2)) {
+						if (type !== 'town' && n(t, 'town', 1)) {
 							t.type('farm');
-						} else if (type === 'farm' && !n(t, 'town', 2)) {
+						}
+						if (type === 'town' && town > 1) {
 							t.type('grass');
 						}
 					},
@@ -357,8 +359,11 @@ Tile.World = {
 							n = Tile.Obj.hasNeighborOfType,
 							water = n(t, 'water', 4),
 							grass = n(t, 'grass', 1);
-						if (type === 'grass' && grass < 2) {
+						if (type === 'grass' && grass < 5) {
 							t.type('water');
+						}
+						if (type === 'farm' && !n(t, 'town', 2)) {
+							t.type('grass');
 						}
 					}
 				], 3);
