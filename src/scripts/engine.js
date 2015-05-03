@@ -238,6 +238,7 @@ Tile.World = {
 		params = params || {};
 		var width = params.width,
 			height = params.height,
+			total = width * height,
 			types = function(t) {
 				if (params.types[t]) {
 					return params.types[t];
@@ -253,6 +254,16 @@ Tile.World = {
 			height: function() {
 				return height;
 			},
+			total: function() {
+				return total;
+			},
+			all: function() {
+				var all = [];
+				this.throughout(function(x, y){
+					all.push([x, y]);
+				});
+				return all;
+			},
 			tile: function(x, y, z) {
 				z = z || 0;
 				if (tiles[z][x] && tiles[z][x][y]) {
@@ -260,6 +271,7 @@ Tile.World = {
 				}
 			},
 			tiles: function(z) {
+				z = z || 0;
 				return tiles[z];
 			},
 			put: function(tile) {
@@ -273,7 +285,11 @@ Tile.World = {
 				}
 			},
 			everywhere: function(fn) {
-				fn($.tug(tiles[0][0]), $.tug(tiles[0][1]));
+				var all = this.all();
+				while (all.length > 0) {
+					var coords = $.tug(all);
+					fn(coords[0], coords[1]);
+				}
 			},
 			generate: function() {
 				var self = this;
@@ -302,15 +318,28 @@ Tile.World = {
 							properties : types(type)
 						});
 						if (type !== 'town') {
-							tile.properties().wetness = r < 950 ? 0 : 6;
+							//tile.properties().wetness = r < 950 ? 0 : 6;
 						}
 						tiles[0][x][y] = tile;
 					}
 				}
 				self.everywhere(function(x, y){
-					var t = tiles[0][x][y];
-					if (t.type() === 'town') {
-						console.log(x,y);
+					var t = tiles[0][x][y],
+						type = t.type(),
+						n = Tile.Obj.hasNeighborOfType,
+						water = n(t, 'water', 2),
+						grass = n(t, 'grass', 2);
+					if (water > 2) {
+						t.type('water');
+						t.depth(1);
+						t.height(6);
+					} else if (type === 'water') {
+						t.type('grass');
+					}
+					if (type !== 'town' && n(t, 'town', 2)) {
+						t.type('farm');
+					} else if (type === 'farm' && !n(t, 'town', 2)) {
+						t.type('grass');
 					}
 				});
 			}
