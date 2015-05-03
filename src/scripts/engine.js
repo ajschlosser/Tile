@@ -314,10 +314,15 @@ Tile.World = {
 				fn = Array.isArray(fn) ? fn : [fn];
 				i = i || 0;
 				function run(f){
-					var all = self.all();
+					var all = self.all(),
+						percent = 0;
 					while (all.length > 0) {
+						var remaining = Math.floor((all.length/total*100));
+						if (100 - remaining !== percent) {
+							percent = 100 - remaining;
+						}
 						var coords = $.tug(all);
-						f(coords[0], coords[1]);
+						f.call(this, coords[0], coords[1], { percent: percent, index: i, remaining: all.length });
 					}
 				}
 				while (i--) {
@@ -356,42 +361,51 @@ Tile.World = {
 						tiles[0][x][y] = tile;
 					}
 				}
+				var status;
 				self.everywhere([
-					function(x, y){
-						var t = tiles[0][x][y],
-							type = t.type(),
-							n = Tile.Obj.hasNeighborOfType,
-							water = n(t, 'water', 2),
-							grass = n(t, 'grass', 1),
-							town = n(t, 'town', 12);
-						if (water > 3) {
-							t.type('water');
-							t.depth(1);
-							t.height(6);
-						} else if (type === 'water') {
-							t.type('grass');
-						}
-						if (type !== 'town' && n(t, 'town', 1)) {
-							t.type('farm');
-						}
-						if (type === 'town' && town > 1) {
-							t.type('grass');
-						}
+					function(x, y, process){
+						ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%'  + ' (' + process.index + ' pass(es) remaining)');
+						setTimeout(function(){
+							var t = tiles[0][x][y],
+								type = t.type(),
+								n = Tile.Obj.hasNeighborOfType,
+								water = n(t, 'water', 2),
+								grass = n(t, 'grass', 1),
+								town = n(t, 'town', 12);
+							if (water > 3) {
+								t.type('water');
+								t.depth(2);
+								t.height(6);
+							} else if (type === 'water') {
+								t.type('grass');
+							}
+							if (type !== 'town' && n(t, 'town', 1)) {
+								t.type('farm');
+							}
+							if (type === 'town' && town > 1) {
+								t.type('grass');
+							}
+						},10);
 					},
-					function(x, y){
+					function(x, y, process){
+						ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%' + ' (' + process.index + ' pass(es) remaining)');
+						setTimeout(function(){
 						var t = tiles[0][x][y],
 							type = t.type(),
 							n = Tile.Obj.hasNeighborOfType,
 							water = n(t, 'water', 4),
 							grass = n(t, 'grass', 1);
-						if (type === 'grass' && grass < 5) {
+						if ((type === 'grass' || type === 'meadow') && grass < 5) {
 							t.type('water');
+							t.depth(1);
 						}
 						if (type === 'farm' && !n(t, 'town', 2)) {
 							t.type('grass');
 						}
+						},10);
 					}
 				], 3);
+				ui.status.content();
 			}
 		};
 	}
@@ -460,9 +474,11 @@ Tile.Engine = {
 			e.style.display = params.ui[uid].display || 'none';
 			var title = document.createElement('h1');
 			title.className = 'title ' + uid;
+			title.innerText = params.ui[uid].title || null;
 			e.appendChild(title);
 			var content = document.createElement('p');
 			content.className = 'content ' + uid;
+			content.innerHTML = params.ui[uid].content || null;
 			e.appendChild(content);
 			if (buttons) {
 				buttons.forEach(function(button){
@@ -486,10 +502,14 @@ Tile.Engine = {
 			params.ui[uid].id = e;
 			$.extend(params.ui[uid], {
 				title: function(s) {
-					title.innerText = s;
+					setTimeout(function() {
+						title.innerText = s || '';
+					},1);
 				},
 				content: function(s) {
-					content.innerHTML = s;
+					setTimeout(function() {
+						content.innerHTML = s || '';
+					},1);
 				},
 				show: function(s) {
 					if (s) {

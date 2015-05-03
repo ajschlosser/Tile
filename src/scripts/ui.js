@@ -36,6 +36,9 @@ var ui = {
 				}
 			}
 		}
+	},
+	status: {
+		display: 'block'
 	}
 };
 
