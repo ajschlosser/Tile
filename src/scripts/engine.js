@@ -284,11 +284,19 @@ Tile.World = {
 					}
 				}
 			},
-			everywhere: function(fn) {
-				var all = this.all();
-				while (all.length > 0) {
-					var coords = $.tug(all);
-					fn(coords[0], coords[1]);
+			everywhere: function(fn, i) {
+				var self = this;
+				fn = Array.isArray(fn) ? fn : [fn];
+				i = i || 0;
+				function run(f){
+					var all = self.all();
+					while (all.length > 0) {
+						var coords = $.tug(all);
+						f(coords[0], coords[1]);
+					}
+				}
+				while (i--) {
+					fn.forEach(run);
 				}
 			},
 			generate: function() {
@@ -323,25 +331,37 @@ Tile.World = {
 						tiles[0][x][y] = tile;
 					}
 				}
-				self.everywhere(function(x, y){
-					var t = tiles[0][x][y],
-						type = t.type(),
-						n = Tile.Obj.hasNeighborOfType,
-						water = n(t, 'water', 2),
-						grass = n(t, 'grass', 2);
-					if (water > 2) {
-						t.type('water');
-						t.depth(1);
-						t.height(6);
-					} else if (type === 'water') {
-						t.type('grass');
+				self.everywhere([
+					function(x, y){
+						var t = tiles[0][x][y],
+							type = t.type(),
+							n = Tile.Obj.hasNeighborOfType,
+							water = n(t, 'water', 2),
+							grass = n(t, 'grass', 2);
+						if (water > 2) {
+							t.type('water');
+							t.depth(1);
+							t.height(6);
+						} else if (type === 'water') {
+							t.type('grass');
+						}
+						if (type !== 'town' && n(t, 'town', 2)) {
+							t.type('farm');
+						} else if (type === 'farm' && !n(t, 'town', 2)) {
+							t.type('grass');
+						}
+					},
+					function(x, y){
+						var t = tiles[0][x][y],
+							type = t.type(),
+							n = Tile.Obj.hasNeighborOfType,
+							water = n(t, 'water', 4),
+							grass = n(t, 'grass', 1);
+						if (type === 'grass' && grass < 2) {
+							t.type('water');
+						}
 					}
-					if (type !== 'town' && n(t, 'town', 2)) {
-						t.type('farm');
-					} else if (type === 'farm' && !n(t, 'town', 2)) {
-						t.type('grass');
-					}
-				});
+				], 3);
 			}
 		};
 	}
@@ -723,8 +743,8 @@ Tile.Engine = {
 				}
 				z = z || 0;
 				var rows = world.tiles(z);
-				for (var x = camera.x - view.width/2; x <= camera.x + view.width/2; x++) {
-					for (var y = camera.y - view.height/2; y <= camera.y + view.height/2; y++) {
+				for (var x = Math.floor(camera.x - view.width/2); x <= Math.floor(camera.x + view.width/2); x++) {
+					for (var y = Math.floor(camera.y - view.height/2); y <= Math.floor(camera.y + view.height/2); y++) {
 						if (rows[x] && rows[x][y]) {
 							var obj = rows[x][y];
 							if (obj) {
@@ -737,7 +757,6 @@ Tile.Engine = {
 						}
 					}
 				}
-
 			},
 			run: function() {
 				var self = this;
