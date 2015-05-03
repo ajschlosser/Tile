@@ -410,7 +410,7 @@ Tile.Engine = {
 
 		// Canvas
 		var id = params.id || 'container',
-			container = document.getElementById(id),
+			container = document.getElementById(id) || document.createElement('div'),
 			canvas = document.createElement('canvas'),
 			context = canvas.getContext('2d');
 		canvas.width = params.w || params.width || 0;
@@ -419,6 +419,10 @@ Tile.Engine = {
 			evt.preventDefault();
 		});
 		context.imageSmoothingEnabled = false;
+		if (!container.id || container.id === '') {
+			container.id = id;
+			document.getElementsByTagName('body')[0].appendChild(container);
+		}
 		container.appendChild(canvas);
 
 		// Engine
