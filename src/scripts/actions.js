@@ -96,9 +96,29 @@ var actions = [
 		name: 'move',
 		events: ['click'],
 		action: function(obj){
+			var x = obj.x(),
+				y = obj.y(),
+				w = game.world().width(),
+				h = game.world().height(),
+				view = {
+					width: Math.floor(game.view().width/2),
+					height: Math.floor(game.view().height/2)
+				};
+			if (x + view.width > w) {
+				x = w - view.width;
+			}
+			if (x - view.width < 0) {
+				x = view.width;
+			}
+			if (y + view.height > h) {
+				y = h - view.height -1;
+			}
+			if (y - view.height < 0) {
+				y = view.height;
+			}
 			game.camera({
-				x: obj.x(),
-				y: obj.y()
+				x: x,
+				y: y
 			});
 		}
 	}

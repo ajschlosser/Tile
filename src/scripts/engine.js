@@ -314,6 +314,20 @@ Tile.World = {
 					}
 				}
 			},
+			randomly: function(fn, range) {
+				var w = range.w,
+					h = range.h,
+					tiles = [];
+				for (var x = range.x; x < w; x++) {
+					for (var y = range.y; y < h; y++) {
+						tiles.push([x, y]);
+					}
+				}
+				while (tiles.length > 0) {
+					var coords = $.tug(tiles);
+					fn.call(this, coords[0], coords[1]);
+				}
+			},
 			everywhere: function(fn, i) {
 				var self = this;
 				fn = Array.isArray(fn) ? fn : [fn];
@@ -759,6 +773,9 @@ Tile.Engine = {
 					return camera;
 				}
 			},
+			view: function() {
+				return view;
+			},
 			clear: function() {
 				context.clearRect(0, 0, canvas.width, canvas.height);
 			},
@@ -816,6 +833,7 @@ Tile.Engine = {
 						}
 					}
 				}
+
 			},
 			run: function() {
 				var self = this;

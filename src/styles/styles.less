@@ -28,6 +28,7 @@
 canvas {
 	background-color: #000;
 	border: 1px solid #000;
+	cursor: pointer;
 	display: block;
 	margin-left: auto;
 	margin-right: auto;
@@ -49,11 +50,20 @@ canvas {
     font-weight: normal;
     font-style: normal;
 }
+.user-select (@val) {
+    -webkit-touch-callout:  @val;
+    -webkit-user-select:    @val;
+    -khtml-user-select:     @val;
+    -moz-user-select:       @val;
+    -ms-user-select:        @val;
+    user-select:            @val;
+}
 
 body {
+	cursor: default;
 	font-family: 'Press Start 2P', sans-serif;
 	text-align: center;
-	user-select: none;
+	.user-select(none);
 }
 
 #container {
@@ -76,9 +86,13 @@ body {
 		background-color: #00A;
 		border: 2px solid #FFF;
 		color: #FFF;
+		cursor: pointer;
 		font-family: 'Press Start 2P', sans-serif;
 		margin: 10px;
 		padding: 5px 25px;
+		&:hover {
+			background-color: #00C;
+		}
 	}
 	h1 {
 		border-bottom: 2px solid #FFF;
