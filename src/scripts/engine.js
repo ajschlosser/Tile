@@ -445,9 +445,11 @@ Tile.Engine = {
 		var id = params.id || 'container',
 			container = document.getElementById(id) || document.createElement('div'),
 			canvas = document.createElement('canvas'),
-			context = canvas.getContext('2d');
-		canvas.width = params.w || params.width || 0;
-		canvas.height = params.h || params.height || 0;
+			buffer = document.createElement('canvas'),
+			context = canvas.getContext('2d'),
+			buffer_ctx = buffer.getContext('2d');
+		canvas.width = buffer.width = params.w || params.width || 0;
+		canvas.height = buffer.height = params.h || params.height || 0;
 		canvas.addEventListener('contextmenu', function(evt){
 			evt.preventDefault();
 		});
@@ -457,6 +459,9 @@ Tile.Engine = {
 			document.getElementsByTagName('body')[0].appendChild(container);
 		}
 		container.appendChild(canvas);
+		buffer.id = 'buffer';
+		buffer.style.display = 'none';
+		container.appendChild(buffer);
 
 		// Engine
 		var options = params.options || {},
@@ -702,8 +707,8 @@ Tile.Engine = {
 					depth = obj.depth();
 				if (sprite) {
 					if (depth > 0) {
-						context.save();
-						context.globalAlpha = 1.0 - parseFloat('0.' + depth);
+						buffer_ctx.save();
+						buffer_ctx.globalAlpha = 1.0 - parseFloat('0.' + depth);
 					}
 					var x = obj.x(),
 						y = obj.y(),
@@ -734,9 +739,9 @@ Tile.Engine = {
 							y: (h - (camera.y - y))
 						};
 					}
-					context.drawImage(sprite.img(), offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
+					buffer_ctx.drawImage(sprite.img(), offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
 					if (depth > 0) {
-						context.restore();
+						buffer_ctx.restore();
 					}
 				} else {
 					throw new Error('No sprite found for "' + obj.type()) + '" at (' + obj.x() + ',' +obj.y() + ')';
@@ -833,7 +838,7 @@ Tile.Engine = {
 						}
 					}
 				}
-
+				context.drawImage(buffer, 0, 0);
 			},
 			run: function() {
 				var self = this;
