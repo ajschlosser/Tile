@@ -383,7 +383,7 @@ Tile.World = {
 				var status;
 				self.everywhere([
 					function(x, y, process){
-						ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%'  + ' (' + process.index + ' pass(es) remaining)');
+						ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%'  + ' (' + process.index + ' pass(es) remaining)', true);
 						$.run(function(){
 							var t = tiles[0][x][y],
 								type = t.type(),
@@ -407,7 +407,7 @@ Tile.World = {
 						});
 					},
 					function(x, y, process){
-						ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%' + ' (' + process.index + ' pass(es) remaining)');
+						ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%' + ' (' + process.index + ' pass(es) remaining)', true);
 						$.run(function(){
 							var t = tiles[0][x][y],
 								type = t.type(),
@@ -525,15 +525,19 @@ Tile.Engine = {
 			container.appendChild(e);
 			params.ui[uid].id = e;
 			$.extend(params.ui[uid], {
-				title: function(s) {
-					setTimeout(function() {
-						title.innerText = s || '';
-					},1);
+				title: function(s, async, delay) {
+					if (async) {
+						setTimeout(function() {
+							title.innerText = s || '';
+						}, delay || 0);
+					}
 				},
-				content: function(s) {
-					setTimeout(function() {
-						content.innerHTML = s || '';
-					},1);
+				content: function(s, async, delay) {
+					if (async) {
+						setTimeout(function() {
+							content.innerHTML = s || '';
+						}, delay || 0);
+					}
 				},
 				show: function(s) {
 					if (s) {
