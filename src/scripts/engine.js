@@ -704,11 +704,11 @@ Tile.Engine = {
 				$.each(types, function(type, next){
 					sprites[type].loaded(function(){
 						spritemaps[type].forEach(function(map, i){
-							buffer_ctx.drawImage(sprites[type].img(), map.x, map.y, tilesize, tilesize);
-							var alpha = 0 + ('0.'+i);
-							buffer_ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
-							buffer_ctx.fillRect(map.x,map.y,tilesize,tilesize);
-							map.img = buffer_ctx.getImageData(map.x,map.y,tilesize,tilesize);
+								buffer_ctx.drawImage(sprites[type].img(), map.x, map.y, tilesize, tilesize);
+								var alpha = 0 + ('0.'+i);
+								buffer_ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
+								buffer_ctx.fillRect(map.x,map.y,tilesize,tilesize);
+								map.img = buffer_ctx.getImageData(map.x,map.y,tilesize,tilesize);
 						});
 						next();
 					});
