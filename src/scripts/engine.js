@@ -453,14 +453,13 @@ Tile.Engine = {
 		canvas.addEventListener('contextmenu', function(evt){
 			evt.preventDefault();
 		});
-		context.imageSmoothingEnabled = false;
+		context.imageSmoothingEnabled = buffer.imageSmoothingEnabled = false;
 		if (!container.id || container.id === '') {
 			container.id = id;
 			document.getElementsByTagName('body')[0].appendChild(container);
 		}
 		container.appendChild(canvas);
 		buffer.id = 'buffer';
-		buffer.style.display = 'none';
 		container.appendChild(buffer);
 
 		// Engine
@@ -838,16 +837,19 @@ Tile.Engine = {
 						}
 					}
 				}
-				context.drawImage(buffer, 0, 0);
 			},
 			run: function() {
 				var self = this;
 				self.init(function(){
 					function sequence() {
-						self.clear();
+						buffer_ctx.clearRect(0,0,buffer.width,buffer.height);
 						self.render(world);
 					}
 					var running = window.setInterval(sequence, 1000 / fps);
+					window.setInterval(function(){
+						self.clear();
+						context.drawImage(buffer, 0, 0);
+					},100);
 				});
 			}
 		};
