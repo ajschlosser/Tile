@@ -704,17 +704,11 @@ Tile.Engine = {
 				$.each(types, function(type, next){
 					sprites[type].loaded(function(){
 						spritemaps[type].forEach(function(map, i){
-							var buf = document.createElement('canvas');
-							buf.width = tilesize,
-							buf.height = tilesize;
-							buf_ctx = buf.getContext('2d');
-							buf_ctx.drawImage(sprites[type].img(), 0, 0, tilesize, tilesize);
+							buffer_ctx.drawImage(sprites[type].img(), map.x, map.y, tilesize, tilesize);
 							var alpha = 0 + ('0.'+i);
-							buf_ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
-							buf_ctx.fillRect(0, 0, tilesize, tilesize);
-
-							map.img = new Image(tilesize,tilesize);
-							map.img.src = buf.toDataURL();
+							buffer_ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
+							buffer_ctx.fillRect(map.x,map.y,tilesize,tilesize);
+							map.img = buffer_ctx.getImageData(map.x,map.y,tilesize,tilesize);
 						});
 						next();
 					});
@@ -755,11 +749,7 @@ Tile.Engine = {
 							y: (h - (camera.y - y))
 						};
 					}
-					// context.drawImage(sprite.img(), offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
-					// var alpha = 0 + ('0.'+obj.depth());
-					// context.fillStyle = 'rgba(0,0,0,' + alpha + ')';
-					// context.fillRect(offset.x*tilesize,offset.y*tilesize,tilesize,tilesize);
-					context.drawImage(spritemaps[obj.type()][obj.depth()].img, offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
+					context.putImageData(spritemaps[obj.type()][obj.depth()].img, offset.x*tilesize, offset.y*tilesize);
 				} else {
 					throw new Error('No sprite found for "' + obj.type()) + '" at (' + obj.x() + ',' +obj.y() + ')';
 				}
