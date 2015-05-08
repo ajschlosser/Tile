@@ -683,7 +683,7 @@ Tile.Engine = {
 				sprites[sprite.type()] = sprite;
 			},
 			tilesize: function(n) {
-
+				this.clear();
 				if (Number.isInteger(n)) {
 					tilesize = n;
 					view = {
@@ -704,11 +704,24 @@ Tile.Engine = {
 				$.each(types, function(type, next){
 					sprites[type].loaded(function(){
 						spritemaps[type].forEach(function(map, i){
+							var alpha = '0.' + i;
+							if (options.draw) {
+								var buf = document.createElement('canvas');
+								buf.width = tilesize;
+								buf.height = tilesize;
+								buf_ctx = buf.getContext('2d');
+								buf_ctx.imageSmoothingEnabled = false;
+								buf_ctx.drawImage(sprites[type].img(), 0, 0, tilesize, tilesize);
+								buf_ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
+								buf_ctx.fillRect(0, 0, tilesize, tilesize);
+								map.img = new Image(tilesize,tilesize);
+								map.img.src = buf.toDataURL();
+							} else {
 								buffer_ctx.drawImage(sprites[type].img(), map.x, map.y, tilesize, tilesize);
-								var alpha = 0 + ('0.'+i);
 								buffer_ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
 								buffer_ctx.fillRect(map.x,map.y,tilesize,tilesize);
 								map.img = buffer_ctx.getImageData(map.x,map.y,tilesize,tilesize);
+							}
 						});
 						next();
 					});
@@ -749,7 +762,11 @@ Tile.Engine = {
 							y: (h - (camera.y - y))
 						};
 					}
-					context.putImageData(spritemaps[obj.type()][obj.depth()].img, offset.x*tilesize, offset.y*tilesize);
+					if (options.draw) {
+						context.drawImage(spritemaps[obj.type()][obj.depth()].img, offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
+					} else {
+						context.putImageData(spritemaps[obj.type()][obj.depth()].img, offset.x*tilesize, offset.y*tilesize);
+					}
 				} else {
 					throw new Error('No sprite found for "' + obj.type()) + '" at (' + obj.x() + ',' +obj.y() + ')';
 				}
@@ -853,7 +870,6 @@ Tile.Engine = {
 				var self = this;
 				self.init(function(){
 					function sequence() {
-						//self.clear();
 						self.render(world);
 					}
 					var running = window.setInterval(sequence, 1000 / fps);
