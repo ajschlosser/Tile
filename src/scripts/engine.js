@@ -453,7 +453,7 @@ Tile.Engine = {
 		canvas.addEventListener('contextmenu', function(evt){
 			evt.preventDefault();
 		});
-		context.imageSmoothingEnabled = buffer.imageSmoothingEnabled = false;
+		context.imageSmoothingEnabled = buffer_ctx.imageSmoothingEnabled = false;
 		if (!container.id || container.id === '') {
 			container.id = id;
 			document.getElementsByTagName('body')[0].appendChild(container);
@@ -475,6 +475,7 @@ Tile.Engine = {
 				y: Math.floor(canvas.height / tilesize / 2),
 			},
 			sprites = {},
+			spritemaps = {},
 			clicks = [],
 			utils = params.utils || {},
 			events = options.events || { 
@@ -551,6 +552,13 @@ Tile.Engine = {
 		// SPRITES
 		$.each(params.sprites, function(sprite){
 			sprites[sprite.type] = Tile.Sprite.create(sprite);
+			spritemaps[sprite.type] = [];
+			for (var i = 0; i < 9; i++) {
+				spritemaps[sprite.type].push({
+					x: i * tilesize,
+					y: ($.keys(sprites).length - 1) * tilesize
+				});
+			}
 		});
 
 		// ACTIONS
@@ -695,6 +703,19 @@ Tile.Engine = {
 				world.generate();
 				$.each(types, function(type, next){
 					sprites[type].loaded(function(){
+						spritemaps[type].forEach(function(map, i){
+							var buf = document.createElement('canvas');
+							buf.width = tilesize,
+							buf.height = tilesize;
+							buf_ctx = buf.getContext('2d');
+							buf_ctx.drawImage(sprites[type].img(), 0, 0, tilesize, tilesize);
+							var alpha = 0 + ('0.'+i);
+							buf_ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
+							buf_ctx.fillRect(0, 0, tilesize, tilesize);
+
+							map.img = new Image(tilesize,tilesize);
+							map.img.src = buf.toDataURL();
+						});
 						next();
 					});
 				}, function() {
@@ -705,10 +726,6 @@ Tile.Engine = {
 				var sprite = sprites[obj.type()],
 					depth = obj.depth();
 				if (sprite) {
-					if (depth > 0) {
-						buffer_ctx.save();
-						buffer_ctx.globalAlpha = 1.0 - parseFloat('0.' + depth);
-					}
 					var x = obj.x(),
 						y = obj.y(),
 						w = Math.floor(view.width/2),
@@ -738,10 +755,11 @@ Tile.Engine = {
 							y: (h - (camera.y - y))
 						};
 					}
-					buffer_ctx.drawImage(sprite.img(), offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
-					if (depth > 0) {
-						buffer_ctx.restore();
-					}
+					// context.drawImage(sprite.img(), offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
+					// var alpha = 0 + ('0.'+obj.depth());
+					// context.fillStyle = 'rgba(0,0,0,' + alpha + ')';
+					// context.fillRect(offset.x*tilesize,offset.y*tilesize,tilesize,tilesize);
+					context.drawImage(spritemaps[obj.type()][obj.depth()].img, offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
 				} else {
 					throw new Error('No sprite found for "' + obj.type()) + '" at (' + obj.x() + ',' +obj.y() + ')';
 				}
@@ -759,6 +777,9 @@ Tile.Engine = {
 						canvas.style[camelCase] = css[prop];
 					});
 				}
+			},
+			spritemap: function(type) {
+				return spritemaps[type];
 			},
 			actions: function() {
 				return actions;
@@ -842,14 +863,10 @@ Tile.Engine = {
 				var self = this;
 				self.init(function(){
 					function sequence() {
-						buffer_ctx.clearRect(0,0,buffer.width,buffer.height);
+						//self.clear();
 						self.render(world);
 					}
 					var running = window.setInterval(sequence, 1000 / fps);
-					window.setInterval(function(){
-						self.clear();
-						context.drawImage(buffer, 0, 0);
-					},100);
 				});
 			}
 		};
