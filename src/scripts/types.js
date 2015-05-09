@@ -42,6 +42,7 @@ var types = {
 		actions: ['wetten']
 	},
 	town: {
+		persistent: true,
 		population: 500,
 		growth: ['population']
 	},

@@ -374,6 +374,9 @@ Tile.World = {
 							depth : type === 'water' ? 1 : 0,
 							properties : types(type)
 						});
+						if (tile.properties().persistent) {
+							console.log('ok');
+						}
 						if (type !== 'town') {
 							//tile.properties().wetness = r < 950 ? 0 : 6;
 						}
@@ -383,7 +386,9 @@ Tile.World = {
 				var status;
 				self.everywhere([
 					function(x, y, process){
-						ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%'  + ' (' + process.index + ' pass(es) remaining)', true);
+						setTimeout(function(){
+							ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%'  + ' (' + process.index + ' pass(es) remaining)');
+						},1);
 						$.run(function(){
 							var t = tiles[0][x][y],
 								type = t.type(),
@@ -407,7 +412,9 @@ Tile.World = {
 						});
 					},
 					function(x, y, process){
-						ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%' + ' (' + process.index + ' pass(es) remaining)', true);
+						setTimeout(function(){
+							ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%' + ' (' + process.index + ' pass(es) remaining)');
+						},1);
 						$.run(function(){
 							var t = tiles[0][x][y],
 								type = t.type(),
@@ -424,7 +431,9 @@ Tile.World = {
 						});
 					}
 				], 3);
-				ui.status.content();
+				setTimeout(function(){
+					ui.status.content();
+				},1);
 			}
 		};
 	}
@@ -525,19 +534,11 @@ Tile.Engine = {
 			container.appendChild(e);
 			params.ui[uid].id = e;
 			$.extend(params.ui[uid], {
-				title: function(s, async, delay) {
-					if (async) {
-						setTimeout(function() {
-							title.innerText = s || '';
-						}, delay || 0);
-					}
+				title: function(s) {
+					title.innerText = s || '';
 				},
-				content: function(s, async, delay) {
-					if (async) {
-						setTimeout(function() {
-							content.innerHTML = s || '';
-						}, delay || 0);
-					}
+				content: function(s) {
+					content.innerHTML = s || '';
 				},
 				show: function(s) {
 					if (s) {
