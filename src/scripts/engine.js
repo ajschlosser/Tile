@@ -243,8 +243,12 @@ Tile.Obj = {
 					return depth;
 				}
 			},
-			properties: function() {
-				return properties;
+			properties: function(props) {
+				if (!props || typeof props !== 'object') {
+					return properties;
+				} else {
+					properties = props;
+				}
 			},
 			type: function(t) {
 				if (typeof t === 'string') {
@@ -303,6 +307,15 @@ Tile.World = {
 			tiles: function(z) {
 				z = z || 0;
 				return tiles[z];
+			},
+			transform: function(tile) {
+				return {
+					to: function(type, properties) {
+						properties = properties || types(type);
+						tile.type(type);
+						tile.properties(properties);
+					}
+				};
 			},
 			put: function(tile) {
 				tiles[tile.z()].push(tile);
@@ -397,17 +410,17 @@ Tile.World = {
 								grass = n(t, 'grass', 1),
 								town = n(t, 'town', 12);
 							if (water > 3) {
-								t.type('water');
+								self.transform(t).to('water');
 								t.depth(2);
 								t.height(6);
 							} else if (type === 'water') {
-								t.type('grass');
+								self.transform(t).to('grass');
 							}
 							if (type !== 'town' && n(t, 'town', 1)) {
-								t.type('farm');
+								self.transform(t).to('farm');
 							}
 							if (type === 'town' && town > 1) {
-								t.type('grass');
+								self.transform(t).to('grass');
 							}
 						});
 					},
@@ -422,11 +435,11 @@ Tile.World = {
 								water = n(t, 'water', 4),
 								grass = n(t, 'grass', 1);
 							if ((type === 'grass' || type === 'meadow') && grass < 5) {
-								t.type('water');
+								self.transform(t).to('water');
 								t.depth(1);
 							}
 							if (type === 'farm' && !n(t, 'town', 2)) {
-								t.type('grass');
+								self.transform(t).to('grass');
 							}
 						});
 					}

@@ -63,10 +63,11 @@ var actions = [
 		name: 'grow',
 		action: function(obj){
 			var r = Math.random() * 10000;
-			if (obj.properties().growth && r > 9950) {
+			if (obj.properties().growth && r > 1) {
 				var g = Math.floor(Math.random() * 9),
+					m = Math.round(obj.properties().population / 1000),
 					farms = game.utils().hasNeighborOfType(obj, 'farm', 3) * 25 || 1;
-				obj.properties()[obj.properties().growth[0]] += g * farms;
+				obj.properties()[obj.properties().growth[0]] += g * (farms - m);
 			}
 		}	
 	},
