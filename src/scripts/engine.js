@@ -336,6 +336,7 @@ Tile.World = {
 						if (tile.properties().persistent) {
 							$.find(tiles.persistent, [tile.x(), tile.y()], function(coords, i){
 								tiles.persistent.splice(i, 1);
+								//console.log('removing %s at %d, %d', tile.type(), tile.x(), tile.y());
 							});
 						}
 						props = props || properties(type);
@@ -857,7 +858,8 @@ Tile.Engine = {
 				context.clearRect(0, 0, canvas.width, canvas.height);
 			},
 			render: function(world, z) {
-				var self = this;
+				var self = this,
+					obj;
 				function run(action) {
 					if (action.events().length) {
 						$.each(action.events(), function(event){
@@ -899,7 +901,7 @@ Tile.Engine = {
 				for (var x = Math.floor(camera.x - view.width/2); x <= Math.floor(camera.x + view.width/2); x++) {
 					for (var y = Math.floor(camera.y - view.height/2); y <= Math.floor(camera.y + view.height/2); y++) {
 						if (rows[x] && rows[x][y]) {
-							var obj = rows[x][y];
+							obj = rows[x][y];
 							if (obj) {
 								if (obj.visible()) {
 									self.draw(obj);
@@ -912,8 +914,11 @@ Tile.Engine = {
 				}
 				var persistents = world.tiles('persistent');
 				persistents.forEach(function(p){
-					var obj = world.tiles(z)[p[0]][p[1]];
-					//console.log(obj.type());
+					obj = world.tiles(z)[p[0]][p[1]];
+					if (obj.properties().persistent) {
+						var todo = $.keys(actions[obj.type()] || {}).concat($.keys(actions['*'] || {}));
+						$.each(todo, process);
+					}
 				});
 			},
 			run: function() {
