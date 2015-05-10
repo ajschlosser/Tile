@@ -48,6 +48,15 @@ Tile.tools = $ = {
 		});
 		return x;
 	},
+	cut: function(o, exclude) {
+		o = this.clone(o);
+		exclude.forEach(function(k){
+			if (o[k]) {
+				delete o[k];
+			}
+		});
+		return o;
+	},
 	contains: function(o1, o2) {
 		var keys = Object.getOwnPropertyNames(o2),
 			contains;
@@ -286,12 +295,9 @@ Tile.World = {
 		var width = params.width,
 			height = params.height,
 			total = width * height,
-			types = function(t) {
-				if (params.types[t]) {
-					return params.types[t];
-				} else {
-					return params.types['*'];
-				}
+			properties = function(t) {
+				t = params.types[t] ? t : '*';
+				return $.cut(params.types[t], ['actions']);
 			},
 			tiles = {
 				0: [],
@@ -326,15 +332,15 @@ Tile.World = {
 			},
 			transform: function(tile) {
 				return {
-					to: function(type, properties) {
+					to: function(type, props) {
 						if (tile.properties().persistent) {
 							$.find(tiles.persistent, [tile.x(), tile.y()], function(coords, i){
 								tiles.persistent.splice(i, 1);
 							});
 						}
-						properties = properties || types(type);
+						props = props || properties(type);
 						tile.type(type);
-						tile.properties(properties);
+						tile.properties(props);
 					}
 				};
 			},
@@ -406,7 +412,7 @@ Tile.World = {
 							type : type,
 							height : type === 'grass' ? 7 : 6,
 							depth : type === 'water' ? 1 : 0,
-							properties : types(type)
+							properties : properties(type)
 						});
 						if (tile.properties().persistent) {
 							tiles.persistent.push([tile.x(), tile.y()]);
@@ -907,7 +913,7 @@ Tile.Engine = {
 				var persistents = world.tiles('persistent');
 				persistents.forEach(function(p){
 					var obj = world.tiles(z)[p[0]][p[1]];
-					console.log(obj.type());
+					//console.log(obj.type());
 				});
 			},
 			run: function() {
