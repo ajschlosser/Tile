@@ -97,6 +97,19 @@ Tile.tools = $ = {
 		});
 		return o1;
 	},
+	find: function(arr, o, callback) {
+		var index;
+		arr.forEach(function(a, i){
+			if (a[0] === o[0] && a[1] === o[1]) {
+				index = i;
+			}
+		});
+		if (!callback) {
+			return index;
+		} else if (arr[index] && index) {
+			callback(arr[index], index);
+		}
+	},
 	keys: function(o) {
 		if (typeof o === 'object') {
 			return Object.getOwnPropertyNames(o);
@@ -280,7 +293,10 @@ Tile.World = {
 					return params.types['*'];
 				}
 			},
-			tiles = { 0: [] };
+			tiles = {
+				0: [],
+				persistent: []
+			};
 		return  {
 			width: function() {
 				return width;
@@ -311,6 +327,11 @@ Tile.World = {
 			transform: function(tile) {
 				return {
 					to: function(type, properties) {
+						if (tile.properties().persistent) {
+							$.find(tiles.persistent, [tile.x(), tile.y()], function(coords, i){
+								tiles.persistent.splice(i, 1);
+							});
+						}
 						properties = properties || types(type);
 						tile.type(type);
 						tile.properties(properties);
@@ -388,7 +409,7 @@ Tile.World = {
 							properties : types(type)
 						});
 						if (tile.properties().persistent) {
-							console.log('ok');
+							tiles.persistent.push([tile.x(), tile.y()]);
 						}
 						if (type !== 'town') {
 							//tile.properties().wetness = r < 950 ? 0 : 6;
@@ -883,6 +904,11 @@ Tile.Engine = {
 						}
 					}
 				}
+				var persistents = world.tiles('persistent');
+				persistents.forEach(function(p){
+					var obj = world.tiles(z)[p[0]][p[1]];
+					console.log(obj.type());
+				});
 			},
 			run: function() {
 				var self = this;
