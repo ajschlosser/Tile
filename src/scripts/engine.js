@@ -297,7 +297,7 @@ Tile.World = {
 			total = width * height,
 			properties = function(t) {
 				t = params.types[t] ? t : '*';
-				return $.cut(params.types[t], ['actions']);
+				return $.cut($.extend($.clone(params.types[t]), $.clone(params.types['*'])), ['actions']);
 			},
 			tiles = {
 				0: [],
@@ -336,7 +336,6 @@ Tile.World = {
 						if (tile.properties().persistent) {
 							$.find(tiles.persistent, [tile.x(), tile.y()], function(coords, i){
 								tiles.persistent.splice(i, 1);
-								//console.log('removing %s at %d, %d', tile.type(), tile.x(), tile.y());
 							});
 						}
 						props = props || properties(type);

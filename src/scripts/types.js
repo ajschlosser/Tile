@@ -36,6 +36,9 @@ var types = {
 	},
 	water: {
 		flows: true,
+		levels: {
+			water: 9
+		},
 		actions: ['flood']
 	},
 	meadow: {

@@ -86,6 +86,10 @@ var actions = [
 			Tile.tools.keys(obj.properties()).forEach(function(prop){
 				if (!Array.isArray(obj.properties()[prop]) && typeof obj.properties()[prop] !== 'object') {
 					content += 'It has a ' + prop + ' of ' + obj.properties()[prop] + '. ';
+				} else if (!Array.isArray(obj.properties()[prop]) && typeof obj.properties()[prop] === 'object') {
+					Tile.tools.keys(obj.properties()[prop]).forEach(function(p){
+						content += 'It has a ' + p + ' ' + prop + ' of ' + obj.properties()[prop][p] + '. ';
+					});
 				}
 			});
 			console.log(game.utils().hasNeighborOfType(obj,'farm',3));
