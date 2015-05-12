@@ -40,12 +40,16 @@ Tile.tools = $ = {
 	assign: function(o1, o2) {
 		return this.extend(o1, o2, true);
 	},
-	clone: function(o) {
+	clone: function(o, deep) {
 		var x = {},
 			keys = Object.getOwnPropertyNames(o);
-		keys.forEach(function(k) {
-			x[k] = o[k];
-		});
+		if (!deep) {
+			keys.forEach(function(k) {
+				x[k] = o[k];
+			});
+		} else if (deep === true) {
+			x = JSON.parse(JSON.stringify(o));
+		}
 		return x;
 	},
 	cut: function(o, exclude) {
@@ -221,7 +225,7 @@ Tile.Obj = {
 			depth = params.depth || 0,
 			type = params.type,
 			visible = (params.visible === true || params.visible === false) ? params.visible : true,
-			properties = $.extend({}, params.properties);
+			properties = $.clone($.extend({}, params.properties), true);
 		return {
 			visible: function(b) {
 				if (typeof b === 'boolean') {
@@ -338,7 +342,7 @@ Tile.World = {
 								tiles.persistent.splice(i, 1);
 							});
 						}
-						props = props || properties(type);
+						props = props || $.clone(properties(type), true);
 						tile.type(type);
 						tile.properties(props);
 					}
@@ -410,7 +414,7 @@ Tile.World = {
 							x : x,
 							y : y,
 							type : type,
-							height : type === 'grass' ? 7 : 6,
+							height : 7,
 							depth : type === 'water' ? 1 : 0,
 							properties : properties(type)
 						});
@@ -439,7 +443,6 @@ Tile.World = {
 							if (water > 3) {
 								self.transform(t).to('water');
 								t.depth(2);
-								t.height(6);
 							} else if (type === 'water') {
 								self.transform(t).to('grass');
 							}
@@ -811,6 +814,19 @@ Tile.Engine = {
 						context.drawImage(spritemaps[obj.type()][obj.depth()].img, offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
 					} else {
 						context.putImageData(spritemaps[obj.type()][obj.depth()].img, offset.x*tilesize, offset.y*tilesize);
+					}
+					if (obj.properties().levels) {
+						var levels = $.keys(obj.properties().levels);
+						levels.forEach(function(level){
+							var alpha = obj.properties().levels[level];
+							if (alpha > 6) {
+								alpha = 6;
+							}
+							context.save();
+							context.globalAlpha = '0.' + alpha;
+							context.drawImage(spritemaps[level][0].img, offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
+							context.restore();
+						});
 					}
 				} else {
 					throw new Error('No sprite found for "' + obj.type()) + '" at (' + obj.x() + ',' +obj.y() + ')';

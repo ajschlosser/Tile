@@ -28,9 +28,8 @@ var actions = [
 	{
 		name: 'wetten',
 		action: function(obj){
-			if (obj.properties().wetness >= 4) {
-				obj.type('water');
-				obj.properties().flows = true;
+			if (obj.type() !== 'water' && obj.properties().levels.water === 9) {
+				game.world().transform(obj).to('water');
 			}
 		}	
 	},
@@ -38,9 +37,11 @@ var actions = [
 		name: 'flood',
 		action: function(obj){
 			var neighbor = game.utils().getRandomNeighborOf(obj);
-			if (neighbor && obj.properties().flows && obj.height() >= neighbor.height() ) {
-				if (neighbor.properties().wetness < 4) {
-					neighbor.properties().wetness += 1;
+			if (neighbor && neighbor.type() !== obj.type() && obj.properties().flows && obj.depth() < neighbor.depth() ) {
+				var water1 = obj.properties().levels[obj.type()],
+					water2 = neighbor.properties().levels[obj.type()];
+				if (water1 > water2 && water2 < 9) {
+					neighbor.properties().levels[obj.type()] += 1;
 				}
 			}
 		}
@@ -54,9 +55,12 @@ var actions = [
 			}
 		}],
 		action: function(obj){
-			var height = obj.height();
-			obj.height(height-1);
-			obj.depth(3);
+			var depth = obj.depth();
+			depth += 1;
+			if (depth >= 9) {
+				depth = 9;
+			}
+			obj.depth(depth);
 		}	
 	},
 	{
@@ -92,7 +96,6 @@ var actions = [
 					});
 				}
 			});
-			console.log(game.utils().hasNeighborOfType(obj,'farm',3));
 			ui.dialog.content(content);
 			ui.dialog.show();
 		}
