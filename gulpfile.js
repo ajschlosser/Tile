@@ -6,7 +6,7 @@ var gulp = require('gulp'),
 	stylish = require('jshint-stylish'),
 	less = require('gulp-less'),
 	async = require('async'),
-	conf = require('./src/conf.d/gulp.js');
+	conf = require('./src/conf/gulp.js');
 
 gulp.task('vendors', function(){
 	var sources = [],

@@ -43,16 +43,16 @@ module.exports = {
 		]
 	},
 	"scripts": {
-		"src": "src/scripts/**/*.js",
+		"src": "src/js/**/*.js",
 		"dist": "dist",
 		"sources": [
-			"src/scripts/engine.js",
-			"src/scripts/ui.js",
-			"src/scripts/sprites.js",
-			"src/scripts/types.js",
-			"src/scripts/actions.js",
-			"src/scripts/utils.js",
-			"src/scripts/game.js"
+			"src/js/engine/Tile.js",
+			"src/js/core/ui.js",
+			"src/js/core/sprites.js",
+			"src/js/core/types.js",
+			"src/js/core/actions.js",
+			"src/js/core/utils.js",
+			"src/js/core/game.js"
 		],
 		"name": "game.js"
 	},
