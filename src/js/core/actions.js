@@ -50,10 +50,11 @@ var actions = [
 		name: 'deepen',
 		events: [{
 			type: 'mousemove',
-			conditions: {
+			buttons: {
 				ctrl: true
 			}
 		}],
+		states: ['canDeepen'],
 		action: function(obj){
 			var depth = obj.depth();
 			depth += 1;
@@ -79,7 +80,7 @@ var actions = [
 		name: 'info',
 		events: [{
 			type: 'click',
-			conditions: {
+			buttons: {
 				shift: true
 			}
 		}],

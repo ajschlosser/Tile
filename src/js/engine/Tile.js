@@ -526,10 +526,24 @@ Tile.Engine = {
 				x: Math.floor(canvas.width / tilesize / 2),
 				y: Math.floor(canvas.height / tilesize / 2),
 			},
+			template = {
+				request: new XMLHttpRequest(),
+				load: function(template, callback) {
+					this.request.callback = callback;
+					this.arguments = Array.prototype.slice.call(arguments, 2);
+					this.request.onload = function() {
+						this.callback.apply(this, this.arguments);
+					}
+					this.request.open('GET', template);
+					this.request.send();
+					return this.request.responseXML;
+				}
+			},
 			sprites = {},
 			spritemaps = {},
 			clicks = [],
 			utils = params.utils || {},
+			states = params.states || [],
 			events = options.events || { 
 				click: [],
 				mousemove: []
@@ -545,17 +559,26 @@ Tile.Engine = {
 		// UI
 		$.each($.keys(params.ui), function(uid){
 			var e = document.createElement('div'),
-				buttons = params.ui[uid].buttons ? $.keys(params.ui[uid].buttons) : null;
+				buttons = params.ui[uid].buttons ? $.keys(params.ui[uid].buttons) : null,
+				content;
 			e.id = uid;
+			if (params.ui[uid].template) {
+				template.load(params.ui[uid].template, function(){
+					content = document.createElement('div');
+					content.innerHTML = this.responseText;
+					e.appendChild(content);
+				});
+			} else {
+				var title = document.createElement('h1');
+				title.className = 'title ' + uid;
+				title.innerText = params.ui[uid].title || null;
+				e.appendChild(title);
+				content = document.createElement('p');
+				content.className = 'content ' + uid;
+				content.innerHTML = params.ui[uid].content || null;
+				e.appendChild(content);
+			}
 			e.style.display = params.ui[uid].display || 'none';
-			var title = document.createElement('h1');
-			title.className = 'title ' + uid;
-			title.innerText = params.ui[uid].title || null;
-			e.appendChild(title);
-			var content = document.createElement('p');
-			content.className = 'content ' + uid;
-			content.innerHTML = params.ui[uid].content || null;
-			e.appendChild(content);
 			if (buttons) {
 				buttons.forEach(function(button){
 					var b = document.createElement('button'),
@@ -613,8 +636,9 @@ Tile.Engine = {
 		$.each(params.actions, function(a){
 			var name = a.name || Object.getOwnPropertyNames(actions).length + 1,
 				action = a.action,
-				types = [],
-				events = a.events || [];
+				types = ['*'],
+				events = a.events || [],
+				states = a.states || [];
 			$.each($.keys(params.types), function(type){
 				if (params.types[type].actions && params.types[type].actions.indexOf(name) !== -1) {
 					types.push(type);
@@ -625,32 +649,23 @@ Tile.Engine = {
 			} else if (typeof action !== 'function') {
 				throw new Error('The ' + name + ' action needs to be a function');
 			}
-			if (types && types.length) {
-				$.each(types, function(type){
-					if (!actions[type]) {
-						actions[type] = {};
-					}
-					actions[type][name] = {
-						run: action,
-						types: function() {
-							return types;
-						},
-						events: function() {
-							return events;
-						}
-					};
-				});
-			} else {
-				actions['*'][name] = {
+			$.each(types, function(type){
+				if (!actions[type]) {
+					actions[type] = {};
+				}
+				actions[type][name] = {
 					run: action,
 					types: function() {
 						return types;
 					},
 					events: function() {
 						return events;
+					},
+					states: function() {
+						return states;
 					}
 				};
-			}
+			});
 		});
 
 		// EVENTS
@@ -699,7 +714,7 @@ Tile.Engine = {
 				events[evt].push({
 					x : offset.x,
 					y : offset.y,
-					conditions : {
+					buttons : {
 						alt : e.altKey,
 						shift : e.shiftKey,
 						ctrl : e.ctrlKey,
@@ -867,6 +882,22 @@ Tile.Engine = {
 			events: function() {
 				return events;
 			},
+			state: function() {
+				return {
+					list: function() {
+						return states;
+					},
+					add: function(state) {
+						states.push(state);
+					},
+					remove: function(state) {
+						var i = states.indexOf(state);
+						if (i !== -1) {
+							states.splice(i,1);
+						}
+					}
+				};
+			},
 			world: function() {
 				return world;
 			},
@@ -891,10 +922,10 @@ Tile.Engine = {
 					if (action.events().length) {
 						$.each(action.events(), function(event){
 							var type,
-								conditions;
+								buttons;
 							if (typeof event === 'object') {
 								type = event.type;
-								conditions = event.conditions;
+								buttons = event.buttons;
 							} else {
 								type = event;
 							}
@@ -902,9 +933,19 @@ Tile.Engine = {
 								for (var i = 0; i < events[type].length; i++) {
 									var e = events[type][i];
 									if (e.x === x && e.y === y) {
-										if (e.ready() && ((event.conditions && $.contains(e.conditions, conditions)) || !event.conditions)) {
+										if (e.ready() && ((event.buttons && $.contains(e.buttons, buttons)) || !event.buttons)) {
 											events[type].splice(i, 1);
-											action.run(obj);
+											if (action.states().length) {
+												var valid = false;
+												for (var j = 0; j < action.states().length; j++) {
+													valid = (states.indexOf(action.states()[j]) !== -1);
+												}
+												if (valid) {
+													action.run(obj);
+												}
+											} else {
+												action.run(obj);
+											}
 										}
 									}
 								}

@@ -39,6 +39,10 @@ var ui = {
 	},
 	status: {
 		display: 'block'
+	},
+	tools: {
+		display: 'inline',
+		template: 'tools.html'
 	}
 };
 
