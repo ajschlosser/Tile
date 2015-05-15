@@ -415,7 +415,7 @@ Tile.World = {
 							y : y,
 							type : type,
 							height : 7,
-							depth : type === 'water' ? 1 : 0,
+							depth : type === 'water' ? 2 : 0,
 							properties : properties(type)
 						});
 						if (tile.properties().persistent) {
@@ -442,7 +442,7 @@ Tile.World = {
 								town = n(t, 'town', 12);
 							if (water > 3) {
 								self.transform(t).to('water');
-								t.depth(2);
+								t.depth(3);
 							} else if (type === 'water') {
 								self.transform(t).to('grass');
 							}
@@ -730,10 +730,20 @@ Tile.Engine = {
 			sprite: function(sprite) {
 				sprites[sprite.type()] = sprite;
 			},
-			tilesize: function(n) {
+			tilesize: function(n, autosize) {
 				this.clear();
 				if (Number.isInteger(n)) {
 					tilesize = n;
+					if (autosize) {
+						if (!this.maxWidth) {
+							this.maxWidth = canvas.width;
+							this.maxHeight = canvas.height;
+						}
+						var newWidth = Math.floor(world.width() * tilesize / 2) + tilesize,
+							newHeight = Math.floor(world.height() * tilesize / 2) + tilesize;
+						canvas.width = newWidth < this.maxWidth ? newWidth : this.maxWidth;
+						canvas.height = newHeight < this.maxHeight ? newHeight : this.maxHeight;
+					}
 					view = {
 						width: Math.floor(canvas.width / tilesize),
 						height: Math.floor(canvas.height / tilesize)
@@ -753,7 +763,7 @@ Tile.Engine = {
 					sprites[type].loaded(function(){
 						spritemaps[type].forEach(function(map, i){
 							var alpha = '0.' + i;
-							if (options.draw) {
+							if (options.draw === true) {
 								var buf = document.createElement('canvas');
 								buf.width = tilesize;
 								buf.height = tilesize;
@@ -810,12 +820,12 @@ Tile.Engine = {
 							y: (h - (camera.y - y))
 						};
 					}
-					if (options.draw) {
+					if (options.draw === true) {
 						context.drawImage(spritemaps[obj.type()][obj.depth()].img, offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
 					} else {
 						context.putImageData(spritemaps[obj.type()][obj.depth()].img, offset.x*tilesize, offset.y*tilesize);
 					}
-					if (obj.properties().levels) {
+					if (options.draw === true && obj.properties().levels) {
 						var levels = $.keys(obj.properties().levels);
 						levels.forEach(function(level){
 							var alpha = obj.properties().levels[level];
@@ -824,7 +834,9 @@ Tile.Engine = {
 							}
 							context.save();
 							context.globalAlpha = '0.' + alpha;
-							context.drawImage(spritemaps[level][0].img, offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
+							if (options.draw === true) {
+								context.drawImage(spritemaps[level][0].img, offset.x*tilesize, offset.y*tilesize, tilesize, tilesize);
+							}
 							context.restore();
 						});
 					}
