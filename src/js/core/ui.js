@@ -42,7 +42,19 @@ var ui = {
 	},
 	tools: {
 		display: 'inline',
-		template: 'tools.html'
+		template: 'tools.html',
+		controller: function(scope) {
+			scope.status = 'disabled';
+			scope.canDeepen = function(el) {
+				game.state().toggle('canDeepen');
+				if (scope.status === 'disabled') {
+					scope.status = 'enabled';
+				} else {
+					scope.status = 'disabled';
+				}
+				el.innerText = 'Deepen (' + scope.status + ')';
+			};
+		}
 	}
 };
 

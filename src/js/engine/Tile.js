@@ -526,7 +526,7 @@ Tile.Engine = {
 				x: Math.floor(canvas.width / tilesize / 2),
 				y: Math.floor(canvas.height / tilesize / 2),
 			},
-			template = {
+			templates = {
 				request: new XMLHttpRequest(),
 				load: function(template, callback) {
 					this.request.callback = callback;
@@ -539,6 +539,7 @@ Tile.Engine = {
 					return this.request.responseXML;
 				}
 			},
+			scopes = {},
 			sprites = {},
 			spritemaps = {},
 			clicks = [],
@@ -560,15 +561,19 @@ Tile.Engine = {
 		$.each($.keys(params.ui), function(uid){
 			var e = document.createElement('div'),
 				buttons = params.ui[uid].buttons ? $.keys(params.ui[uid].buttons) : null,
+				template = params.ui[uid].template,
+				controller = params.ui[uid].controller,
 				content;
 			e.id = uid;
-			if (params.ui[uid].template) {
-				template.load(params.ui[uid].template, function(){
+			if (template) {
+				templates.load(template, function(){
 					content = document.createElement('div');
 					content.innerHTML = this.responseText;
-					var scripts = content.getElementsByTagName('script');
-					for (var i = 0; i < scripts.length; i++) {
-						eval(scripts[i].innerText);
+					scopes[uid] = {};
+					controller(scopes[uid]);
+					var clicks = content.querySelectorAll('[tile-click]');
+					for (var i = 0; i < clicks.length; i++) {
+						clicks[i].addEventListener('click', scopes[uid][clicks[i].getAttribute('tile-click')].bind(scopes[uid], clicks[i]));
 					}
 					e.appendChild(content);
 				});
@@ -891,6 +896,12 @@ Tile.Engine = {
 					list: function() {
 						return states;
 					},
+					has: function(state) {
+						if (states.indexOf(state) !== -1) {
+							return true;
+						}
+						return false;
+					},
 					add: function(state) {
 						states.push(state);
 					},
@@ -898,6 +909,15 @@ Tile.Engine = {
 						var i = states.indexOf(state);
 						if (i !== -1) {
 							states.splice(i,1);
+						}
+					},
+					toggle: function(state) {
+						if (this.has(state)) {
+							this.remove(state);
+							return 0;
+						} else {
+							this.add(state);
+							return 1;
 						}
 					}
 				};
