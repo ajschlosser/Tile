@@ -533,7 +533,7 @@ Tile.Engine = {
 					this.arguments = Array.prototype.slice.call(arguments, 2);
 					this.request.onload = function() {
 						this.callback.apply(this, this.arguments);
-					}
+					};
 					this.request.open('GET', template);
 					this.request.send();
 					return this.request.responseXML;
@@ -566,6 +566,10 @@ Tile.Engine = {
 				template.load(params.ui[uid].template, function(){
 					content = document.createElement('div');
 					content.innerHTML = this.responseText;
+					var scripts = content.getElementsByTagName('script');
+					for (var i = 0; i < scripts.length; i++) {
+						eval(scripts[i].innerText);
+					}
 					e.appendChild(content);
 				});
 			} else {
