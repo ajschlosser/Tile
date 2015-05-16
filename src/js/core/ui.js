@@ -49,10 +49,10 @@ var ui = {
 				game.state().toggle('canDeepen');
 				if (scope.status === 'disabled') {
 					scope.status = 'enabled';
-					el.class = 'selected';
+					el.className = 'selected';
 				} else {
 					scope.status = 'disabled';
-					el.class = '';
+					el.className = '';
 				}
 				el.innerText = 'Deepen (' + scope.status + ')';
 			};
