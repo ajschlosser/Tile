@@ -63,10 +63,15 @@ canvas {
 }
 
 body {
+	background-color: #111;
 	cursor: default;
 	font-family: 'Press Start 2P', sans-serif;
 	text-align: center;
 	.user-select(none);
+}
+
+h1 {
+	color: #FFF;
 }
 
 #container {
@@ -85,18 +90,6 @@ body {
 	text-align: center;
 	top: 5%;
 	width: 320px;
-	button {
-		background-color: #00A;
-		border: 2px solid #FFF;
-		color: #FFF;
-		cursor: pointer;
-		font-family: 'Press Start 2P', sans-serif;
-		margin: 10px;
-		padding: 5px 25px;
-		&:hover {
-			background-color: #00C;
-		}
-	}
 	h1 {
 		border-bottom: 2px solid #FFF;
 		font-size: 1em;
@@ -106,6 +99,22 @@ body {
 	p {
 		font-size: 0.75em;
 		padding: 0 15px;
+	}
+}
+
+button {
+	background-color: #00A;
+	border: 2px solid #FFF;
+	color: #FFF;
+	cursor: pointer;
+	font-family: 'Press Start 2P', sans-serif;
+	margin: 10px;
+	padding: 5px 25px;
+	&:hover {
+		background-color: #00C;
+	}
+	.selected {
+		background-color: #00B;
 	}
 }
 
