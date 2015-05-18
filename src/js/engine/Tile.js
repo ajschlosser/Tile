@@ -123,6 +123,16 @@ Tile.tools = $ = {
 			callback(arr[index], index);
 		}
 	},
+	getParams: function(fn) {
+		var comments = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg,
+			params = /([^\s,]+)/g,
+			s = fn.toString().replace(comments, ''),
+			result = s.slice(s.indexOf('(')+1, s.indexOf(')')).match(params);
+		if(result === null) {
+			result = [];
+		}
+		return result;
+	},
 	keys: function(o) {
 		if (typeof o === 'object') {
 			return Object.getOwnPropertyNames(o);
@@ -225,7 +235,7 @@ Tile.Obj = {
 			depth = params.depth || 0,
 			type = params.type,
 			visible = (params.visible === true || params.visible === false) ? params.visible : true,
-			properties = $.clone($.extend({}, params.properties), true);
+			properties = $.clone($.extend({}, params.properties || {}), true);
 		return {
 			visible: function(b) {
 				if (typeof b === 'boolean') {
@@ -306,7 +316,8 @@ Tile.World = {
 			tiles = {
 				0: [],
 				persistent: []
-			};
+			},
+			player = params.player || null;
 		return  {
 			width: function() {
 				return width;
@@ -333,6 +344,13 @@ Tile.World = {
 			tiles: function(z) {
 				z = z || 0;
 				return tiles[z];
+			},
+			player: function(p) {
+				if (p) {
+					player = p;
+				} else {
+					return player;
+				}
 			},
 			transform: function(tile) {
 				return {
@@ -372,10 +390,10 @@ Tile.World = {
 					fn.call(this, coords[0], coords[1]);
 				}
 			},
-			everywhere: function(fn, i) {
+			everywhere: function(fn, i, callback) {
 				var self = this;
 				fn = Array.isArray(fn) ? fn : [fn];
-				i = i || 0;
+				i = i || 1;
 				function run(f){
 					var all = self.all(),
 						percent = 0;
@@ -391,6 +409,10 @@ Tile.World = {
 				while (i--) {
 					fn.forEach(run);
 				}
+				if (callback) {
+					callback();
+				}
+				console.log(i);
 			},
 			generate: function() {
 				var self = this;
@@ -473,7 +495,9 @@ Tile.World = {
 							}
 						});
 					}
-				], 3);
+				], 3, function(){
+					console.log('done');
+				});
 				setTimeout(function(){
 					ui.status.content();
 				},1);
@@ -781,34 +805,62 @@ Tile.Engine = {
 				}
 			},
 			init: function(callback) {
-				var types = Object.getOwnPropertyNames(sprites);
-				world.generate();
-				$.each(types, function(type, next){
-					sprites[type].loaded(function(){
-						spritemaps[type].forEach(function(map, i){
-							var alpha = '0.' + i;
-							if (options.draw === true) {
-								var buf = document.createElement('canvas');
-								buf.width = tilesize;
-								buf.height = tilesize;
-								buf_ctx = buf.getContext('2d');
-								buf_ctx.imageSmoothingEnabled = false;
-								buf_ctx.drawImage(sprites[type].img(), 0, 0, tilesize, tilesize);
-								buf_ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
-								buf_ctx.fillRect(0, 0, tilesize, tilesize);
-								map.img = new Image(tilesize,tilesize);
-								map.img.src = buf.toDataURL();
-							} else {
-								buffer_ctx.drawImage(sprites[type].img(), map.x, map.y, tilesize, tilesize);
-								buffer_ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
-								buffer_ctx.fillRect(map.x,map.y,tilesize,tilesize);
-								map.img = buffer_ctx.getImageData(map.x,map.y,tilesize,tilesize);
-							}
-						});
-						next();
+				var types = Object.getOwnPropertyNames(sprites),
+					async = {},
+					sync = {};
+				if (params.init) {
+					$.each($.keys(params.init), function(k){
+						if ($.getParams(params.init[k]).length) {
+							async[k] = params.init[k];
+						} else {
+							sync[k] = params.init[k];
+						}
 					});
-				}, function() {
-					callback();
+				}
+				$.extend(async,
+					{
+						init_generate: function(done) {
+							world.generate();
+							done();
+						},
+						init_sprites: function(done) {
+							$.each(types, function(type, next){
+								sprites[type].loaded(function(){
+									spritemaps[type].forEach(function(map, i){
+										var alpha = '0.' + i;
+										if (options.draw === true) {
+											var buf = document.createElement('canvas');
+											buf.width = tilesize;
+											buf.height = tilesize;
+											buf_ctx = buf.getContext('2d');
+											buf_ctx.imageSmoothingEnabled = false;
+											buf_ctx.drawImage(sprites[type].img(), 0, 0, tilesize, tilesize);
+											buf_ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
+											buf_ctx.fillRect(0, 0, tilesize, tilesize);
+											map.img = new Image(tilesize,tilesize);
+											map.img.src = buf.toDataURL();
+										} else {
+											buffer_ctx.drawImage(sprites[type].img(), map.x, map.y, tilesize, tilesize);
+											buffer_ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
+											buffer_ctx.fillRect(map.x,map.y,tilesize,tilesize);
+											map.img = buffer_ctx.getImageData(map.x,map.y,tilesize,tilesize);
+										}
+									});
+									next();
+								});
+							}, function() {
+								done();
+							});
+						}
+					}
+				);
+				$.parallel(async, function(){
+					$.each($.keys(sync), function(k, next){
+						sync[k]();
+						next();
+					}, function(){
+						callback();
+					});
 				});
 			},
 			draw: function(obj) {
@@ -927,8 +979,28 @@ Tile.Engine = {
 			},
 			camera: function(params) {
 				if (params) {
-					camera.x = params.x;
-					camera.y = params.y;
+					var x = params.x,
+						y = params.y,
+						w = canvas.width,
+						h = canvas.height,
+						v = {
+							width: Math.floor(view.width/2),
+							height: Math.floor(view.height/2)
+						};
+					if (x + v.width > w) {
+						x = w - v.width;
+					}
+					if (x - v.width < 0) {
+						x = v.width;
+					}
+					if (y + v.height > h) {
+						y = h - v.height -1;
+					}
+					if (y - v.height < 0) {
+						y = v.height;
+					}
+					camera.x = x;
+					camera.y = y;
 				} else {
 					return camera;
 				}

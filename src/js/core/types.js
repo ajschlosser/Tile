@@ -52,6 +52,9 @@ var types = {
 	farm: {
 		yield: 10,
 		actions: ['wetten']
+	},
+	player: {
+		production: 1
 	}
 };
 

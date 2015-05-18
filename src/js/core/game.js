@@ -37,6 +37,26 @@ var game = Tile.Engine.create({
 	world: {
 		width: 55,
 		height: 55
+	},
+	init: {
+		init_sync_player: function() {
+			game.world().everywhere(function(x, y, process){
+				var tile = game.world().tiles(0)[x][y];
+				if (!game.world().player() && tile.type() === 'town') {
+					game.world().player(Tile.Obj.create({
+						x : x,
+						y : y,
+						type : 'player'
+					}));
+					game.camera({
+						x : x,
+						y : y
+					});
+				}
+			}, 1, function() {
+				console.log('ok');
+			});
+		}
 	}
 });
 
