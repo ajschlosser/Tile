@@ -317,6 +317,7 @@ Tile.World = {
 				0: [],
 				persistent: []
 			},
+			types = params.types,
 			player = params.player || null;
 		return  {
 			width: function() {
@@ -344,6 +345,9 @@ Tile.World = {
 			tiles: function(z) {
 				z = z || 0;
 				return tiles[z];
+			},
+			type: function(t) {
+				return types[t];
 			},
 			player: function(p) {
 				if (p) {
@@ -406,7 +410,7 @@ Tile.World = {
 				}
 				fn = Array.isArray(fn) ? fn : [fn];
 				i = i || 1;
-				var total = i * fn.length;
+				var series = i * fn.length;
 				function run(f){
 					var all = self.all(),
 						percent = 0;
@@ -418,13 +422,13 @@ Tile.World = {
 						var coords = $.tug(all);
 						f.call(this, coords[0], coords[1], { percent: percent, index: i, remaining: all.length });
 					}
-					total--;
+					series--;
 				}
 				while (i--) {
 					fn.forEach(run);
 				}
 				var finished = setInterval(function(){
-					if (total <= 0) {
+					if (series <= 0) {
 						callback();
 						clearInterval(finished);
 					}
@@ -685,7 +689,7 @@ Tile.Engine = {
 		$.each(params.actions, function(a){
 			var name = a.name || Object.getOwnPropertyNames(actions).length + 1,
 				action = a.action,
-				types = ['*'],
+				types = [],
 				events = a.events || [],
 				states = a.states || [];
 			$.each($.keys(params.types), function(type){
@@ -999,8 +1003,8 @@ Tile.Engine = {
 				if (params) {
 					var x = params.x,
 						y = params.y,
-						w = canvas.width,
-						h = canvas.height,
+						w = world.width(),
+						h = world.height(),
 						v = {
 							width: Math.floor(view.width/2),
 							height: Math.floor(view.height/2)
@@ -1032,6 +1036,8 @@ Tile.Engine = {
 			render: function(world, z) {
 				var self = this,
 					obj;
+
+				// Run a particular action given particular conditions
 				function run(action) {
 					if (action.events().length) {
 						$.each(action.events(), function(event){
@@ -1069,6 +1075,8 @@ Tile.Engine = {
 						action.run(obj);
 					}
 				}
+
+				// Process a tile's potential actions
 				function process(name) {
 					var type = actions[obj.type()],
 						any = actions['*'][name];
@@ -1078,6 +1086,8 @@ Tile.Engine = {
 						run(any);
 					}
 				}
+
+				// Render tiles in view
 				z = z || 0;
 				var rows = world.tiles(z);
 				for (var x = Math.floor(camera.x - view.width/2); x <= Math.floor(camera.x + view.width/2); x++) {
@@ -1094,6 +1104,8 @@ Tile.Engine = {
 						}
 					}
 				}
+
+				// Render all persistent tiles
 				var persistents = world.tiles('persistent');
 				persistents.forEach(function(p){
 					obj = world.tiles(z)[p[0]][p[1]];
@@ -1102,6 +1114,14 @@ Tile.Engine = {
 						$.each(todo, process);
 					}
 				});
+
+				// Run all player actions
+				if (actions.player) {
+					$.each($.keys(actions.player), function(name){
+						actions.player[name].run();
+					});
+				}
+
 			},
 			run: function() {
 				var self = this;

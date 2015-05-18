@@ -44,17 +44,16 @@ var game = Tile.Engine.create({
 				var tile = game.world().tiles(0)[x][y];
 				if (!game.world().player() && tile.type() === 'town') {
 					game.world().player(Tile.Obj.create({
-						x : x,
-						y : y,
-						type : 'player'
+						properties : game.world().type('player')
 					}));
+					game.world().player().properties().town = tile;
 					game.camera({
 						x : x,
 						y : y
 					});
 				}
 			}, 1, function() {
-				console.log('ok');
+				console.log('done initializing');
 			});
 		}
 	}

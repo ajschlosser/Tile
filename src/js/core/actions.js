@@ -88,11 +88,11 @@ var actions = [
 			var name = obj.type();
 			ui.dialog.title(game.utils().capitalizeFirstLetter(name) + '(' + obj.x() + ', ' + obj.y() + ')');
 			var content = 'This ' + name + ' has a height of ' + obj.height() + ', a depth of ' + obj.depth() + '. ';
-			Tile.tools.keys(obj.properties()).forEach(function(prop){
+			$.keys(obj.properties()).forEach(function(prop){
 				if (!Array.isArray(obj.properties()[prop]) && typeof obj.properties()[prop] !== 'object') {
 					content += 'It has a ' + prop + ' of ' + obj.properties()[prop] + '. ';
 				} else if (!Array.isArray(obj.properties()[prop]) && typeof obj.properties()[prop] === 'object') {
-					Tile.tools.keys(obj.properties()[prop]).forEach(function(p){
+					$.keys(obj.properties()[prop]).forEach(function(p){
 						content += 'It has a ' + p + ' ' + prop + ' of ' + obj.properties()[prop][p] + '. ';
 					});
 				}
@@ -129,6 +129,12 @@ var actions = [
 				x: x,
 				y: y
 			});
+		}
+	},
+	{
+		name: 'player',
+		action: function() {
+			ui.status.content('Citizens: ' + game.world().player().properties().town.properties().population);
 		}
 	}
 ];

@@ -29,7 +29,7 @@ var types = {
 		levels: {
 			water: 0
 		},
-		actions: ['deepen', 'info']
+		actions: ['deepen', 'info', 'move', 'grow']
 	},
 	grass: {
 		actions: ['wetten']
@@ -54,7 +54,8 @@ var types = {
 		actions: ['wetten']
 	},
 	player: {
-		production: 1
+		town: null,
+		actions: ['player']
 	}
 };
 
