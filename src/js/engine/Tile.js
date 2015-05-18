@@ -392,8 +392,21 @@ Tile.World = {
 			},
 			everywhere: function(fn, i, callback) {
 				var self = this;
+				if (Array.isArray(fn)) {
+					fn = fn;
+				} else {
+					if (typeof fn === 'function') {
+						fn = [fn];
+					} else if ($.keys(fn).length) {
+						fn = [];
+						$.keys(fn).forEach(function(func){
+							fn.push(func);
+						});
+					}
+				}
 				fn = Array.isArray(fn) ? fn : [fn];
 				i = i || 1;
+				var total = i * fn.length;
 				function run(f){
 					var all = self.all(),
 						percent = 0;
@@ -405,16 +418,19 @@ Tile.World = {
 						var coords = $.tug(all);
 						f.call(this, coords[0], coords[1], { percent: percent, index: i, remaining: all.length });
 					}
+					total--;
 				}
 				while (i--) {
 					fn.forEach(run);
 				}
-				if (callback) {
-					callback();
-				}
-				console.log(i);
+				var finished = setInterval(function(){
+					if (total <= 0) {
+						callback();
+						clearInterval(finished);
+					}
+				});
 			},
-			generate: function() {
+			generate: function(callback) {
 				var self = this;
 				for (var x = 0; x < width; x++) {
 					tiles[0][x] = [];
@@ -496,7 +512,7 @@ Tile.World = {
 						});
 					}
 				], 3, function(){
-					console.log('done');
+					callback();
 				});
 				setTimeout(function(){
 					ui.status.content();
@@ -820,8 +836,10 @@ Tile.Engine = {
 				$.extend(async,
 					{
 						init_generate: function(done) {
-							world.generate();
-							done();
+							world.generate(function(){
+								console.log('done generating');
+								done();
+							});
 						},
 						init_sprites: function(done) {
 							$.each(types, function(type, next){
