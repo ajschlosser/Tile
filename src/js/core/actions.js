@@ -73,6 +73,9 @@ var actions = [
 					m = Math.round(obj.properties().population / 1000),
 					farms = game.utils().hasNeighborOfType(obj, 'farm', 3) * 25 || 1;
 				obj.properties()[obj.properties().growth[0]] += g * ((farms - m) > 0 ? (farms - m) : 0);
+				if (obj.type() === 'town' && obj.properties()[obj.properties().growth[0]] > 10000) {
+					game.world().transform(obj).to('city');
+				}
 			}
 		}	
 	},

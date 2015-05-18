@@ -28,15 +28,15 @@ var game = Tile.Engine.create({
 	options: { draw: true },
 	width: 960,
 	height: 540,
-	tilesize: 32,
+	tilesize: 48,
 	utils: utils,
 	ui: ui,
 	types: types,
 	sprites: sprites,
 	actions: actions,
 	world: {
-		width: 55,
-		height: 55
+		width: 100,
+		height: 50
 	},
 	init: {
 		init_sync_player: function() {

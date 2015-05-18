@@ -49,6 +49,11 @@ var types = {
 		population: 500,
 		growth: ['population']
 	},
+	city: {
+		persistent: true,
+		population: 500,
+		growth: ['population']
+	},
 	farm: {
 		yield: 10,
 		actions: ['wetten']

@@ -55,6 +55,12 @@ var sprites = [
 		h    : 16,
 		type : 'town'
 	},
+	{
+		src  : 'assets/city.png',
+		w    : 16,
+		h    : 16,
+		type : 'city'
+	},
 ];
 
 // END SPRITES
