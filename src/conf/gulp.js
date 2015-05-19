@@ -47,6 +47,7 @@ module.exports = {
 		"dist": "dist",
 		"sources": [
 			"src/js/engine/Tile.js",
+			"src/js/engine/**/*.js",
 			"src/js/core/ui.js",
 			"src/js/core/sprites.js",
 			"src/js/core/types.js",

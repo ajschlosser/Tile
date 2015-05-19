@@ -1,12 +1,13 @@
-var gulp = require('gulp'),
-	concat = require('gulp-concat'),
-	es = require('event-stream'),
-	rem = require('gulp-remove-code'),
-	jshint = require('gulp-jshint'),
-	stylish = require('jshint-stylish'),
-	less = require('gulp-less'),
-	async = require('async'),
-	conf = require('./src/conf/gulp.js');
+var gulp	= require('gulp'),
+	concat	= require('gulp-concat'),
+	es		= require('event-stream'),
+	rem		= require('gulp-remove-code'),
+	jshint	= require('gulp-jshint'),
+	stylish	= require('jshint-stylish'),
+	less	= require('gulp-less'),
+	wrap	= require('gulp-wrap'),
+	async	= require('async'),
+	conf	= require('./src/conf/gulp.js');
 
 gulp.task('vendors', function(){
 	var sources = [],
@@ -64,6 +65,7 @@ gulp.task('scripts', function(){
 		.pipe(jshint.reporter(stylish))
 		.pipe(concat(conf.scripts.name))
 		.pipe(rem({ production: true }))
+		.pipe(wrap('(function(){\n\n<%= contents %>\n\n})();'))
 		.pipe(gulp.dest(conf.scripts.dist));
 });
 
