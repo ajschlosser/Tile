@@ -325,6 +325,9 @@ Tile.Engine = {
 				}
 			},
 			init: function(callback) {
+				if (options.debug) {
+					window.game = this;
+				}
 				var types = Object.getOwnPropertyNames(sprites),
 					async = {},
 					sync = {};
