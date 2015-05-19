@@ -86,17 +86,14 @@ Tile.Engine = {
 					var binding = {
 						found: [],
 						indices: []
-					}
+					};
 					var re = /{{([^}]+)}}/g,
-						match;
+						match = re.exec(scope.template);
 					scope.apply = false;
-					while(match = re.exec(scope.template)) {
+					while(match) {
 						binding.found.push(match[1]);
 						binding.indices.push(scope.template.search(re));
-					}
-					if (scope.buffer !== scope.bounded) {
-						scope.buffer = scope.bounded;
-						scope.apply = true;
+						match = re.exec(scope.template);
 					}
 					binding.found.forEach(function(bound, i){
 						if (scope[bound]) {
@@ -104,6 +101,10 @@ Tile.Engine = {
 							scope.bounded = scope.template.substr(0, binding.indices[i]) + scope[bound] + scope.template.substr(binding.indices[i] + l + 2);
 						}
 					});
+					if (scope.buffer !== scope.bounded) {
+						scope.buffer = scope.bounded;
+						scope.apply = true;
+					}
 					callback(scope);
 				}
 			},
@@ -661,7 +662,12 @@ Tile.Engine = {
 					s.forEach(function(scope){
 						templates.bind(scopes[scope], function(s){
 							if (s.apply) {
-								console.log(s);
+								var e = document.getElementById('tile-template-' + scope);
+								e.innerHTML = s.bounded;
+								var clicks = e.querySelectorAll('[tile-click]');
+								for (var i = 0; i < clicks.length; i++) {
+									clicks[i].addEventListener('click', scopes[scope][clicks[i].getAttribute('tile-click')].bind(scopes[scope], clicks[i]));
+								}
 							}
 						});
 					});
