@@ -81,6 +81,30 @@ Tile.Engine = {
 					this.request.open('GET', template);
 					this.request.send();
 					return this.request.responseXML;
+				},
+				bind: function(scope, callback) {
+					var binding = {
+						found: [],
+						indices: []
+					}
+					var re = /{{([^}]+)}}/g,
+						match;
+					scope.apply = false;
+					while(match = re.exec(scope.template)) {
+						binding.found.push(match[1]);
+						binding.indices.push(scope.template.search(re));
+					}
+					if (scope.buffer !== scope.bounded) {
+						scope.buffer = scope.bounded;
+						scope.apply = true;
+					}
+					binding.found.forEach(function(bound, i){
+						if (scope[bound]) {
+							var l = Math.max(scope[bound].length, bound.length + 2);
+							scope.bounded = scope.template.substr(0, binding.indices[i]) + scope[bound] + scope.template.substr(binding.indices[i] + l + 2);
+						}
+					});
+					callback(scope);
 				}
 			},
 			scopes = {},
@@ -112,9 +136,13 @@ Tile.Engine = {
 			if (template) {
 				templates.load(template, function(){
 					content = document.createElement('div');
-					content.innerHTML = this.responseText;
+					content.id = 'tile-template-' + uid;
 					scopes[uid] = {};
 					controller(scopes[uid]);
+					scopes[uid].template = this.responseText;
+					templates.bind(scopes[uid], function(scope){
+						content.innerHTML = scope.bounded;
+					});
 					var clicks = content.querySelectorAll('[tile-click]');
 					for (var i = 0; i < clicks.length; i++) {
 						clicks[i].addEventListener('click', scopes[uid][clicks[i].getAttribute('tile-click')].bind(scopes[uid], clicks[i]));
@@ -297,6 +325,9 @@ Tile.Engine = {
 			},
 			sprite: function(sprite) {
 				sprites[sprite.type()] = sprite;
+			},
+			scopes: function() {
+				return scopes;
 			},
 			tilesize: function(n, autosize) {
 				this.clear();
@@ -622,6 +653,17 @@ Tile.Engine = {
 				if (actions.player) {
 					$.each($.keys(actions.player), function(name){
 						actions.player[name].run();
+					});
+				}
+
+				var s = $.keys(scopes);
+				if (s) {
+					s.forEach(function(scope){
+						templates.bind(scopes[scope], function(s){
+							if (s.apply) {
+								console.log(s);
+							}
+						});
 					});
 				}
 

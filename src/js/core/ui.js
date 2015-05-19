@@ -48,13 +48,13 @@ var ui = {
 			scope.canDeepen = function(el) {
 				game.state().toggle('canDeepen');
 				if (scope.status === 'disabled') {
-					scope.status = 'enabled';
+					scope.status = 'yes';
 					el.className = 'selected';
 				} else {
 					scope.status = 'disabled';
 					el.className = '';
 				}
-				el.innerText = 'Deepen (' + scope.status + ')';
+				//el.innerText = 'Deepen (' + scope.status + ')';
 			};
 		}
 	}
