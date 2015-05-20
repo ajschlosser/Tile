@@ -184,18 +184,12 @@ Tile.World = {
 						if (tile.properties().persistent) {
 							tiles.persistent.push([tile.x(), tile.y()]);
 						}
-						if (type !== 'town') {
-							//tile.properties().wetness = r < 950 ? 0 : 6;
-						}
 						tiles[0][x][y] = tile;
 					}
 				}
 				var status;
 				self.everywhere([
 					function(x, y, process){
-						setTimeout(function(){
-							ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%'  + ' (' + process.index + ' pass(es) remaining)');
-						},1);
 						$.run(function(){
 							var t = tiles[0][x][y],
 								type = t.type(),
@@ -218,9 +212,6 @@ Tile.World = {
 						});
 					},
 					function(x, y, process){
-						setTimeout(function(){
-							ui.status.content('Creating lakes and oceans (' + process.remaining + ')... ' + process.percent + '%' + ' (' + process.index + ' pass(es) remaining)');
-						},1);
 						$.run(function(){
 							var t = tiles[0][x][y],
 								type = t.type(),
@@ -239,9 +230,6 @@ Tile.World = {
 				], 3, function(){
 					callback();
 				});
-				setTimeout(function(){
-					ui.status.content();
-				},1);
 			}
 		};
 	}

@@ -61,7 +61,43 @@ Tile.Engine = {
 		// Engine
 		var options = params.options || {},
 			tilesize = params.tilesize || 16,
-			ui = {},
+			ui = params.ui || {},
+			templates = {
+				load: function(template, callback) {
+					var request = new XMLHttpRequest();
+					request.callback = callback;
+					this.arguments = Array.prototype.slice.call(arguments, 2);
+					request.onload = function() {
+						this.callback.apply(this, this.arguments);
+					};
+					request.open('GET', template);
+					request.send();
+					return request.responseXML;
+				},
+				bind: function(scope, callback) {
+					var found = [],
+						indices = [],
+						re = /{{([^}]+)}}/g,
+						match = re.exec(scope.template);
+					scope.apply = false;
+					while(match) {
+						found.push(match[1]);
+						indices.push(scope.template.search(re));
+						match = re.exec(scope.template);
+					}
+					found.forEach(function(bound, i){
+						if (scope[bound]) {
+							var l = Math.max(scope[bound].length, bound.length + 2);
+							scope.bound = scope.template.substr(0, indices[i]) + scope[bound] + scope.template.substr(indices[i] + l + 2);
+						}
+					});
+					if (scope.buffer !== scope.bound) {
+						scope.buffer = scope.bound;
+						scope.apply = true;
+					}
+					callback(scope);
+				}
+			},
 			view = {
 				width: Math.floor(canvas.width / tilesize),
 				height: Math.floor(canvas.height / tilesize)
@@ -69,44 +105,6 @@ Tile.Engine = {
 			camera = {
 				x: Math.floor(canvas.width / tilesize / 2),
 				y: Math.floor(canvas.height / tilesize / 2),
-			},
-			templates = {
-				request: new XMLHttpRequest(),
-				load: function(template, callback) {
-					this.request.callback = callback;
-					this.arguments = Array.prototype.slice.call(arguments, 2);
-					this.request.onload = function() {
-						this.callback.apply(this, this.arguments);
-					};
-					this.request.open('GET', template);
-					this.request.send();
-					return this.request.responseXML;
-				},
-				bind: function(scope, callback) {
-					var binding = {
-						found: [],
-						indices: []
-					};
-					var re = /{{([^}]+)}}/g,
-						match = re.exec(scope.template);
-					scope.apply = false;
-					while(match) {
-						binding.found.push(match[1]);
-						binding.indices.push(scope.template.search(re));
-						match = re.exec(scope.template);
-					}
-					binding.found.forEach(function(bound, i){
-						if (scope[bound]) {
-							var l = Math.max(scope[bound].length, bound.length + 2);
-							scope.bounded = scope.template.substr(0, binding.indices[i]) + scope[bound] + scope.template.substr(binding.indices[i] + l + 2);
-						}
-					});
-					if (scope.buffer !== scope.bounded) {
-						scope.buffer = scope.bounded;
-						scope.apply = true;
-					}
-					callback(scope);
-				}
 			},
 			scopes = {},
 			sprites = {},
@@ -127,11 +125,10 @@ Tile.Engine = {
 			});
 
 		// UI
-		$.each($.keys(params.ui), function(uid){
+		$.each($.keys(ui), function(uid){
 			var e = document.createElement('div'),
-				buttons = params.ui[uid].buttons ? $.keys(params.ui[uid].buttons) : null,
-				template = params.ui[uid].template,
-				controller = params.ui[uid].controller,
+				template = ui[uid].template,
+				controller = ui[uid].controller,
 				content;
 			e.id = uid;
 			if (template) {
@@ -142,64 +139,31 @@ Tile.Engine = {
 					controller(scopes[uid]);
 					scopes[uid].template = this.responseText;
 					templates.bind(scopes[uid], function(scope){
-						content.innerHTML = scope.bounded;
-					});
-					var clicks = content.querySelectorAll('[tile-click]');
-					for (var i = 0; i < clicks.length; i++) {
-						clicks[i].addEventListener('click', scopes[uid][clicks[i].getAttribute('tile-click')].bind(scopes[uid], clicks[i]));
-					}
-					e.appendChild(content);
-				});
-			} else {
-				var title = document.createElement('h1');
-				title.className = 'title ' + uid;
-				title.innerText = params.ui[uid].title || null;
-				e.appendChild(title);
-				content = document.createElement('p');
-				content.className = 'content ' + uid;
-				content.innerHTML = params.ui[uid].content || null;
-				e.appendChild(content);
-			}
-			e.style.display = params.ui[uid].display || 'none';
-			if (buttons) {
-				buttons.forEach(function(button){
-					var b = document.createElement('button'),
-						props = params.ui[uid].buttons[button];
-					b.className = 'button ' + uid + ' ' + button;
-					if (props.text) {
-						b.innerText = props.text;
-					}
-					b.addEventListener(props.event, function(){
-						if (props.callback) {
-							props.action(e, props.callback);	
-						} else {
-							props.action(e);
+						content.innerHTML = scope.bound;
+						var clicks = content.querySelectorAll('[tile-click]');
+						for (var i = 0; i < clicks.length; i++) {
+							clicks[i].addEventListener('click', scopes[uid][clicks[i].getAttribute('tile-click')].bind(scopes[uid], clicks[i]));
 						}
+						e.appendChild(content);
+						e.style.display = ui[uid].display || 'none';
+						container.appendChild(e);
+						ui[uid].id = e;
+						$.extend(scopes[uid], {
+							show: function(s) {
+								if (s) {
+									e.style.display = s;
+								} else {
+									e.style.display = 'block';
+								}
+							},
+							hide: function() {
+								e.style.display = 'none';
+							}
+						});
+						$.extend(ui[uid], scopes[uid]);
 					});
-					e.appendChild(b);
 				});
 			}
-			container.appendChild(e);
-			params.ui[uid].id = e;
-			$.extend(params.ui[uid], {
-				title: function(s) {
-					title.innerText = s || '';
-				},
-				content: function(s) {
-					content.innerHTML = s || '';
-				},
-				show: function(s) {
-					if (s) {
-						e.style.display = s;
-					} else {
-						e.style.display = 'block';
-					}
-				},
-				hide: function() {
-					e.style.display = 'none';
-				}
-			});
-			ui[uid] = params.ui[uid];
 		});
 
 		// SPRITES
@@ -376,7 +340,6 @@ Tile.Engine = {
 					{
 						init_generate: function(done) {
 							world.generate(function(){
-								console.log('done generating');
 								done();
 							});
 						},
@@ -663,7 +626,7 @@ Tile.Engine = {
 						templates.bind(scopes[scope], function(s){
 							if (s.apply) {
 								var e = document.getElementById('tile-template-' + scope);
-								e.innerHTML = s.bounded;
+								e.innerHTML = s.bound;
 								var clicks = e.querySelectorAll('[tile-click]');
 								for (var i = 0; i < clicks.length; i++) {
 									clicks[i].addEventListener('click', scopes[scope][clicks[i].getAttribute('tile-click')].bind(scopes[scope], clicks[i]));

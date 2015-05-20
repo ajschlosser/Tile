@@ -56,7 +56,7 @@ var game = Tile.Engine.create({
 					});
 				}
 			}, 1, function() {
-				console.log('done initializing');
+				// done
 			});
 		}
 	}

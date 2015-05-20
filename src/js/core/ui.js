@@ -25,20 +25,30 @@
 // UI
 
 var ui = {
-	dialog: {
-		esc: true,
-		buttons: {
-			ok: {
-				event: 'click',
-				text: 'OK',
-				action: function(e) {
-					ui.dialog.hide();
-				}
-			}
+	modal: {
+		display: 'block',
+		template: 'modal.html',
+		controller: function(scope) {
+			scope.title = 'hi :)';
+			scope.message = 'ok';
+			scope.update = function(title, message) {
+				scope.title = title;
+				scope.message = message;
+			};
+			scope.close = function(el) {
+				this.hide();
+			};
 		}
 	},
 	status: {
-		display: 'block'
+		display: 'block',
+		template: 'content.html',
+		controller: function(scope) {
+			scope.content = 'Generating world...';
+			scope.update = function(s) {
+				scope.content = s;
+			};
+		}
 	},
 	tools: {
 		display: 'inline',
@@ -48,13 +58,12 @@ var ui = {
 			scope.canDeepen = function(el) {
 				game.state().toggle('canDeepen');
 				if (scope.status === 'disabled') {
-					scope.status = 'yes';
+					scope.status = 'enabled';
 					el.className = 'selected';
 				} else {
 					scope.status = 'disabled';
 					el.className = '';
 				}
-				//el.innerText = 'Deepen (' + scope.status + ')';
 			};
 		}
 	}

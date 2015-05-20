@@ -89,8 +89,8 @@ var actions = [
 		}],
 		action: function(obj){
 			var name = obj.type();
-			ui.dialog.title(game.utils().capitalizeFirstLetter(name) + '(' + obj.x() + ', ' + obj.y() + ')');
-			var content = 'This ' + name + ' has a height of ' + obj.height() + ', a depth of ' + obj.depth() + '. ';
+			var title = game.utils().capitalizeFirstLetter(name) + '(' + obj.x() + ', ' + obj.y() + ')',
+				content = 'This ' + name + ' has a height of ' + obj.height() + ', a depth of ' + obj.depth() + '. ';
 			$.keys(obj.properties()).forEach(function(prop){
 				if (!Array.isArray(obj.properties()[prop]) && typeof obj.properties()[prop] !== 'object') {
 					content += 'It has a ' + prop + ' of ' + obj.properties()[prop] + '. ';
@@ -100,8 +100,8 @@ var actions = [
 					});
 				}
 			});
-			ui.dialog.content(content);
-			ui.dialog.show();
+			ui.modal.update(title, content);
+			ui.modal.show();
 		}
 	},
 	{
@@ -137,7 +137,7 @@ var actions = [
 	{
 		name: 'player',
 		action: function() {
-			ui.status.content('Citizens: ' + game.world().player().properties().town.properties().population);
+			ui.status.update('Citizens: ' + game.world().player().properties().town.properties().population);
 		}
 	}
 ];
