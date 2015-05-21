@@ -34,6 +34,13 @@ var types = {
 	grass: {
 		actions: ['wetten']
 	},
+	dirt: {
+		levels: {
+			grass: 0,
+			water: 0
+		},
+		actions: ['wetten', 'vegetate']
+	},
 	water: {
 		flows: true,
 		levels: {

@@ -32,6 +32,12 @@ var sprites = [
 		type : 'grass'
 	},
 	{
+		src  : 'assets/dirt.png',
+		w    : 16,
+		h    : 16,
+		type : 'dirt'
+	},
+	{
 		src  : 'assets/water.png',
 		w    : 16,
 		h    : 16,
@@ -60,7 +66,7 @@ var sprites = [
 		w    : 16,
 		h    : 16,
 		type : 'city'
-	},
+	}
 ];
 
 // END SPRITES

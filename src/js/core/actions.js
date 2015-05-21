@@ -34,6 +34,20 @@ var actions = [
 		}	
 	},
 	{
+		name: 'vegetate',
+		action: function(obj){
+			if (obj.properties().levels.grass < 9) {
+				var r = Math.random()*10000;
+				if (r > 9950) {
+					obj.properties().levels.grass++;
+				}
+			}
+			if (obj.properties().levels.grass >= 9) {
+				game.world().transform(obj).to('grass');
+			}
+		}
+	},
+	{
 		name: 'flood',
 		action: function(obj){
 			var neighbor = game.utils().getRandomNeighborOf(obj);
@@ -62,6 +76,9 @@ var actions = [
 				depth = 9;
 			}
 			obj.depth(depth);
+			if (obj.type() === 'grass') {
+				game.world().transform(obj).to('dirt');
+			}
 		}	
 	},
 	{
@@ -100,6 +117,7 @@ var actions = [
 					});
 				}
 			});
+			console.log(content);
 			ui.modal.update(title, content);
 			ui.modal.show();
 		}
