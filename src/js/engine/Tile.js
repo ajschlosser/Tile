@@ -75,22 +75,14 @@ Tile.Engine = {
 					return request.responseXML;
 				},
 				bind: function(scope, callback) {
-					var found = [],
-						indices = [],
-						re = /{{([^}]+)}}/g,
+					var re = /{{([^}]+)}}/g,
 						match = re.exec(scope.template);
 					scope.apply = false;
+					scope.bound = scope.template;
 					while(match) {
-						found.push(match[1]);
-						indices.push(scope.template.search(re));
+						scope.bound = scope.bound.replace(match[0], scope[match[1]]);
 						match = re.exec(scope.template);
 					}
-					found.forEach(function(bound, i){
-						if (scope[bound]) {
-							var l = Math.max(scope[bound].length, bound.length + 2);
-							scope.bound = scope.template.substr(0, indices[i]) + scope[bound] + scope.template.substr(indices[i] + l + 2);
-						}
-					});
 					if (scope.buffer !== scope.bound) {
 						scope.buffer = scope.bound;
 						scope.apply = true;
