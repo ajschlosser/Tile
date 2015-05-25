@@ -93,27 +93,20 @@ Tile.tools = $ = {
 	},
 	encapsulate: function(o) {
 		function process(prop, key) {
-			function publicize(prop) {
-				return function(p) {
-					if (p) {
-						prop = p;
-					}
-					return prop;
-				};
-			}
 			var primary = prop[key];
-			for (var i in primary) {
-				if (primary[i] !== null && typeof primary[i] === 'object') {
-					process(primary, i);
-				} else {
-					var secondary = primary[i];
-					primary[i] = publicize(secondary);
+			if (!Array.isArray(prop[key])) {
+				for (var i in primary) {
+					if (primary[i] !== null && typeof primary[i] === 'object') {
+						process(primary, i);
+					} else {
+						var secondary = primary[i];
+						primary[i] = this.publicize(secondary);
+					}
 				}
 			}
-			prop[key] = publicize(primary);
+			prop[key] = this.publicize(primary);
 		}
 		this.traverse(o, process);
-
 	},
 	extend: function(o1, o2, assign) {
 		var keys = Object.getOwnPropertyNames(o2);
@@ -170,6 +163,43 @@ Tile.tools = $ = {
 			callback(err, results);
 		});
 	},
+	publicize: function(prop) {
+		if (!Array.isArray(prop)) {
+			return function access(p) {
+				if (p && prop[p]) {
+					return prop[p]();
+				} else if (p && !prop[p]) {
+					return {
+						get: function(){},
+						set: function(){},
+						add: function(){}
+					};
+				} else {
+					var accesses = {
+						get: function() {
+							return prop;
+						},
+						set: function(value){
+							prop = value;
+						}
+					};
+					switch (typeof prop) {
+						case 'number':
+							$.extend(accesses, {
+								add: function(n) {
+									prop += parseFloat(n);
+									return prop;
+								}
+							});
+							break;
+					}
+					return accesses;
+				}
+			};
+		} else {
+			return prop;
+		}
+	},
 	run: function(fn) {
 		if (typeof fn === 'function') {
 			setTimeout(fn,1);
@@ -178,7 +208,7 @@ Tile.tools = $ = {
 	traverse: function(o, fn) {
 		for (var i in o) {
 			fn.apply(this, [o, i]);
-			if (o[i] !== null && typeof o[i] === 'object') {
+			if (o[i] !== null && typeof o[i] === 'object' && !Array.isArray(o[i])) {
 				this.traverse(o[i], fn);
 			}
 		}
