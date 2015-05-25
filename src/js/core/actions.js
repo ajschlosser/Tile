@@ -125,8 +125,7 @@ var actions = [
 		name: 'move',
 		events: ['click'],
 		action: function(obj){
-			var test = $.clone(obj.properties2(), true);
-			console.log(test);
+			console.log(obj.properties2('growth'));
 			var x = obj.x(),
 				y = obj.y(),
 				w = game.world().width(),

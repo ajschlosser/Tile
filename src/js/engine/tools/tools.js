@@ -98,7 +98,7 @@ Tile.tools = $ = {
 				for (var i in primary) {
 					if (primary[i] !== null && typeof primary[i] === 'object') {
 						process(primary, i);
-					} else {
+					} else if (typeof primary[i] !== 'function') {
 						var secondary = primary[i];
 						primary[i] = this.publicize(secondary);
 					}
@@ -107,6 +107,7 @@ Tile.tools = $ = {
 			prop[key] = this.publicize(primary);
 		}
 		this.traverse(o, process);
+		return o;
 	},
 	extend: function(o1, o2, assign) {
 		var keys = Object.getOwnPropertyNames(o2);
@@ -164,7 +165,7 @@ Tile.tools = $ = {
 		});
 	},
 	publicize: function(prop) {
-		if (!Array.isArray(prop)) {
+		if (!Array.isArray(prop) && typeof prop !== 'function') {
 			return function access(p) {
 				if (p && prop[p]) {
 					return prop[p]();

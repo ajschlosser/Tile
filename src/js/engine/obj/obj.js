@@ -109,6 +109,7 @@ Tile.Obj = {
 							return properties2;
 						},
 						set: function(props) {
+							$.encapsulate(props);
 							properties2 = props;
 						}
 					};
