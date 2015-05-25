@@ -91,6 +91,30 @@ Tile.tools = $ = {
 			}
 		}
 	},
+	encapsulate: function(o) {
+		function process(prop, key) {
+			function publicize(prop) {
+				return function(p) {
+					if (p) {
+						prop = p;
+					}
+					return prop;
+				};
+			}
+			var primary = prop[key];
+			for (var i in primary) {
+				if (primary[i] !== null && typeof primary[i] === 'object') {
+					process(primary, i);
+				} else {
+					var secondary = primary[i];
+					primary[i] = publicize(secondary);
+				}
+			}
+			prop[key] = publicize(primary);
+		}
+		this.traverse(o, process);
+
+	},
 	extend: function(o1, o2, assign) {
 		var keys = Object.getOwnPropertyNames(o2);
 		keys.forEach(function(k) {
@@ -149,6 +173,14 @@ Tile.tools = $ = {
 	run: function(fn) {
 		if (typeof fn === 'function') {
 			setTimeout(fn,1);
+		}
+	},
+	traverse: function(o, fn) {
+		for (var i in o) {
+			fn.apply(this, [o, i]);
+			if (o[i] !== null && typeof o[i] === 'object') {
+				this.traverse(o[i], fn);
+			}
 		}
 	},
 	tug: function(arr) {

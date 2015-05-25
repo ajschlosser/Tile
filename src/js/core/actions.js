@@ -117,7 +117,6 @@ var actions = [
 					});
 				}
 			});
-			console.log(content);
 			ui.modal.update(title, content);
 			ui.modal.show();
 		}
@@ -126,6 +125,9 @@ var actions = [
 		name: 'move',
 		events: ['click'],
 		action: function(obj){
+			var test = $.clone(obj.properties(), true);
+			$.encapsulate(test);
+			console.log(test.yield());
 			var x = obj.x(),
 				y = obj.y(),
 				w = game.world().width(),

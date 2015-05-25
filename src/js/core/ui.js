@@ -29,11 +29,18 @@ var ui = {
 		display: 'block',
 		template: 'modal.html',
 		controller: function(scope) {
-			scope.title = 'hi :)';
-			scope.message = 'ok';
-			scope.update = function(title, message) {
-				scope.title = title;
-				scope.message = message;
+			scope.title = 'Tile 0.0.1 Demo';
+			scope.message = '\
+				This is a demo for Tile. Tile is a 2D JavaScript tile \
+				engine for the HTML5 canvas. Its goal is to be simple \
+				and practical for the creation of RPG, roguelike, or \
+				simulation games using native JavaScript in the \
+				browser.';
+			scope.button = 'Sounds good!';
+			scope.update = function(title, message, button) {
+				scope.title = title || 'Info';
+				scope.message = message || '';
+				scope.button = button || 'OK';
 			};
 			scope.close = function(el) {
 				this.hide();
