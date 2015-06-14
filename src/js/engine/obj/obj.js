@@ -48,8 +48,6 @@ Tile.Obj = {
 			type = params.type,
 			visible = (params.visible === true || params.visible === false) ? params.visible : true,
 			properties = $.clone($.extend({}, params.properties || {}), true);
-		var properties2 = $.clone(properties, true);
-		$.encapsulate(properties2);
 		return {
 			visible: function(b) {
 				if (typeof b === 'boolean') {
@@ -98,21 +96,6 @@ Tile.Obj = {
 					return properties;
 				} else {
 					properties = props;
-				}
-			},
-			properties2: function(p) {
-				if (properties2[p]) {
-					return properties2[p];
-				} else {
-					return {
-						get: function() {
-							return properties2;
-						},
-						set: function(props) {
-							$.encapsulate(props);
-							properties2 = props;
-						}
-					};
 				}
 			},
 			type: function(t) {

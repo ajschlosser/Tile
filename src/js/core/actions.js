@@ -36,13 +36,13 @@ var actions = [
 	{
 		name: 'vegetate',
 		action: function(obj){
-			if (obj.properties2('levels')('grass').get() < 9) {
+			if (obj.properties().levels.grass < 9) {
 				var r = Math.random()*10000;
 				if (r > 9950) {
-					obj.properties2('levels')('grass').add(1);
+					obj.properties().levels.grass++;
 				}
 			}
-			if (obj.properties2('levels')('grass').get() >= 9) {
+			if (obj.properties().levels.grass >= 9) {
 				game.world().transform(obj).to('grass');
 			}
 		}
@@ -125,7 +125,6 @@ var actions = [
 		name: 'move',
 		events: ['click'],
 		action: function(obj){
-			console.log(obj.properties2('growth'));
 			var x = obj.x(),
 				y = obj.y(),
 				w = game.world().width(),

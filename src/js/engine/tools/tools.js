@@ -91,24 +91,6 @@ Tile.tools = $ = {
 			}
 		}
 	},
-	encapsulate: function(o) {
-		function process(prop, key) {
-			var primary = prop[key];
-			if (!Array.isArray(prop[key])) {
-				for (var i in primary) {
-					if (primary[i] !== null && typeof primary[i] === 'object') {
-						process(primary, i);
-					} else if (typeof primary[i] !== 'function') {
-						var secondary = primary[i];
-						primary[i] = this.publicize(secondary);
-					}
-				}
-			}
-			prop[key] = this.publicize(primary);
-		}
-		this.traverse(o, process);
-		return o;
-	},
 	extend: function(o1, o2, assign) {
 		var keys = Object.getOwnPropertyNames(o2);
 		keys.forEach(function(k) {
@@ -164,54 +146,9 @@ Tile.tools = $ = {
 			callback(err, results);
 		});
 	},
-	publicize: function(prop) {
-		if (!Array.isArray(prop) && typeof prop !== 'function') {
-			return function access(p) {
-				if (p && prop[p]) {
-					return prop[p]();
-				} else if (p && !prop[p]) {
-					return {
-						get: function(){},
-						set: function(){},
-						add: function(){}
-					};
-				} else {
-					var accesses = {
-						get: function() {
-							return prop;
-						},
-						set: function(value){
-							prop = value;
-						}
-					};
-					switch (typeof prop) {
-						case 'number':
-							$.extend(accesses, {
-								add: function(n) {
-									prop += parseFloat(n);
-									return prop;
-								}
-							});
-							break;
-					}
-					return accesses;
-				}
-			};
-		} else {
-			return prop;
-		}
-	},
 	run: function(fn) {
 		if (typeof fn === 'function') {
 			setTimeout(fn,1);
-		}
-	},
-	traverse: function(o, fn) {
-		for (var i in o) {
-			fn.apply(this, [o, i]);
-			if (o[i] !== null && typeof o[i] === 'object' && !Array.isArray(o[i])) {
-				this.traverse(o[i], fn);
-			}
 		}
 	},
 	tug: function(arr) {

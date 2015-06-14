@@ -88,8 +88,6 @@ Tile.World = {
 						props = props || $.clone(properties(type), true);
 						tile.type(type);
 						tile.properties(props);
-						var props2 = $.clone(properties(type), true);
-						tile.properties2().set(props2);
 					}
 				};
 			},
