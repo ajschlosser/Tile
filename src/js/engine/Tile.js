@@ -305,6 +305,9 @@ Tile.Engine = {
        */
 			fps = params.fps || 60,
 
+      wait = params.options.turns === true ? true : false,
+      turn = params.options.turns === true ? 0 : null,
+
       /**
        * The game's world, created by calling Tile.World.create
        * @var {object} world
@@ -727,7 +730,7 @@ Tile.Engine = {
 			clear: function() {
 				context.clearRect(0, 0, canvas.width, canvas.height);
 			},
-			render: function(world, z) {
+			render: function(world, z, current) {
 				var self = this,
 					obj;
 
@@ -766,7 +769,9 @@ Tile.Engine = {
 							}
 						});
 					} else {
-						action.run(obj);
+						if (!current) {
+              action.run(obj);
+            }
 					}
 				}
 
@@ -831,18 +836,33 @@ Tile.Engine = {
 						});
 					});
 				}
+        if (params.options.turns) {
+          if (!current) {
+            turn++;
+          }
+          self.wait();
+        }
 
 			},
 			run: function() {
 				var self = this;
 				self.init(function(){
 					function sequence() {
-						self.render(world);
+						self.render(world, undefined, wait === true ? true : false);
 						window.requestAnimationFrame(sequence);
 					}
 					var running = window.requestAnimationFrame(sequence);
 				});
-			}
+			},
+      wait: function() {
+        wait = true;
+      },
+      continue: function() {
+        wait = false;
+      },
+      turn: function() {
+        return turn;
+      }
 		};
 	}
 };

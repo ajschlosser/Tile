@@ -27,7 +27,8 @@
 var game = Tile.Engine.create({
 	options: {
 		debug: true,
-		draw: true
+		draw: true,
+    turns: true
 	},
 	width: 960,
 	height: 576,

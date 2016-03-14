@@ -62,6 +62,7 @@ var ui = {
 		template: 'tools.html',
 		controller: function(scope) {
 			scope.status = 'disabled';
+      scope.turn = game.turn();
 			scope.canDeepen = function(el) {
 				game.state().toggle('canDeepen');
 				if (scope.status === 'disabled') {
@@ -72,6 +73,10 @@ var ui = {
 					el.className = '';
 				}
 			};
+      scope.nextTurn = function(el) {
+        game.continue();
+        scope.turn = game.turn();
+      };
 		}
 	}
 };
