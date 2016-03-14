@@ -39,7 +39,8 @@ var game = Tile.Engine.create({
 	actions: actions,
 	world: {
 		width: 100,
-		height: 50
+		height: 50,
+    generators: generators
 	},
 	init: {
 		init_sync_player: function() {

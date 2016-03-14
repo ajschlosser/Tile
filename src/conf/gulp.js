@@ -53,6 +53,7 @@ module.exports = {
 			"src/js/core/types.js",
 			"src/js/core/actions.js",
 			"src/js/core/utils.js",
+      "src/js/core/generators.js",
 			"src/js/core/game.js"
 		],
 		"name": "game.js"

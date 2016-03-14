@@ -8,6 +8,7 @@
     "event-stream": "^3.3.0",
     "gulp": "^3.8.11",
     "gulp-concat": "^2.5.2",
+    "gulp-jsdoc-to-markdown": "^1.2.1",
     "gulp-jshint": "^1.10.0",
     "gulp-less": "^3.0.2",
     "gulp-remove-code": "^1.0.2",

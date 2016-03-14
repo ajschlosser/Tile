@@ -30,19 +30,78 @@
 // --------------------------------------------------
 // ENGINE
 
+/**
+ * @namespace Tile
+ */
 var Tile = {};
 
+/**
+ * @namespace Tile.Engine
+ * @memberof Tile
+ */
 Tile.Engine = {
+  /**
+   * Create the Tile engine
+   * @method
+   * @memberof Tile.Engine
+   * @param {object} params The params object
+   */
 	create: function(params) {
 
 		// INITIALIZE PRIVATE VARIABLES
 
 		// Canvas
+
+    /**
+     * The id attribute of the containing div
+     * @constant {string}
+     * @inner
+     * @memberof Tile.Engine.create
+     * @default container
+     */
 		var id = params.id || 'container',
+
+      /**
+       * The div that contains the canvas element
+       * @constant {HTMLElement} container
+       * @inner
+       * @memberof Tile.Engine.create
+       * @default Creates a div element
+       */
 			container = document.getElementById(id) || document.createElement('div'),
+
+      /**
+       * The main canvas element
+       * @constant {HTMLElement} canvas
+       * @inner
+       * @memberof Tile.Engine.create
+       * @default Creates a canvas element that gets appended to the container
+       */
 			canvas = document.createElement('canvas'),
+
+      /**
+       * The canvas buffer
+       * @constant {string} buffer
+       * @inner
+       * @memberof Tile.Engine.create
+       * @default Creates a canvas element that gets appended to the container
+       */
 			buffer = document.createElement('canvas'),
+
+      /**
+       * Context of the main canvas element
+       * @constant {CanvasRenderingContext2D} context
+       * @inner
+       * @memberof Tile.Engine.create
+       */
 			context = canvas.getContext('2d'),
+
+      /**
+       * Context of the canvas buffer
+       * @constant {CanvasRenderingContext2D} buffer_ctx
+       * @inner
+       * @memberof Tile.Engine.create
+       */
 			buffer_ctx = buffer.getContext('2d');
 		canvas.width = buffer.width = params.w || params.width || 0;
 		canvas.height = buffer.height = params.h || params.height || 0;
@@ -59,10 +118,49 @@ Tile.Engine = {
 		container.appendChild(buffer);
 
 		// Engine
+    /**
+     * An object with options as properties
+     * @constant {object} options
+     * @inner
+     * @memberof Tile.Engine.create
+     * @default {}
+     */
 		var options = params.options || {},
+
+      /**
+       * Tile size in pixels
+       * @constant {number} tilesize
+       * @inner
+       * @memberof Tile.Engine.create
+       * @default 16
+       */
 			tilesize = params.tilesize || 16,
+
+      /**
+       * An object with GUI template objects as properties
+       * @constant {object} ui
+       * @inner
+       * @memberof Tile.Engine.create
+       * @default {}
+       */
 			ui = params.ui || {},
+
+      /**
+       * Namespace for managing templates
+       * @namespace templates
+       * @inner
+       * @memberof Tile.Engine.create
+       */
 			templates = {
+        /**
+         * Load a template with a GET request
+         * @method load
+         * @param {string} template Template file
+         * @param {callback} callback Callback executed when the template loads
+         * @inner
+         * @memberof Tile.Engine.create~templates
+         * @return {string} Respnse XML
+         */
 				load: function(template, callback) {
 					var request = new XMLHttpRequest();
 					request.callback = callback;
@@ -74,6 +172,14 @@ Tile.Engine = {
 					request.send();
 					return request.responseXML;
 				},
+        /**
+         * Bind a scope to a template
+         * @method bind
+         * @param {object} scope Template scope object
+         * @param {callback} callback Callback executed on the bound scope
+         * @inner
+         * @memberof Tile.Engine.create~templates
+         */
 				bind: function(scope, callback) {
 					var re = /{{([^}]+)}}/g,
 						match = re.exec(scope.template);
@@ -90,30 +196,128 @@ Tile.Engine = {
 					callback(scope);
 				}
 			},
+      /**
+       * Size of the viewable area of the game world
+       * @constant {object} view
+       * @inner
+       * @memberof Tile.Engine.create
+       * @default {
+            width: Math.floor(canvas.width / tilesize),
+            height: Math.floor(canvas.height / tilesize)
+          }
+       */
 			view = {
 				width: Math.floor(canvas.width / tilesize),
 				height: Math.floor(canvas.height / tilesize)
 			},
+
+      /**
+       * Position of the camera, which is the center of the view
+       * @var {object} camera
+       * @inner
+       * @memberof Tile.Engine.create
+       * @default {
+            x: Math.floor(canvas.width / tilesize / 2),
+            y: Math.floor(canvas.height / tilesize / 2)
+          }
+       */
 			camera = {
 				x: Math.floor(canvas.width / tilesize / 2),
-				y: Math.floor(canvas.height / tilesize / 2),
+				y: Math.floor(canvas.height / tilesize / 2)
 			},
+
+      /**
+       * An object that has scopes that are bound to GUI templates as properties
+       * @constant {object} scopes
+       * @inner
+       * @memberof Tile.Engine.create
+       */
 			scopes = {},
+
+      /**
+       * An object that has sprite objects as properties
+       * @constant {object} sprites
+       * @inner
+       * @memberof Tile.Engine.create
+       */
 			sprites = {},
+
+      /**
+       * An object that has spritemap objects as properties
+       * @constant {object} spritemaps
+       * @inner
+       * @memberof Tile.Engine.create
+       */
 			spritemaps = {},
+
+      /**
+       * An array of click events
+       * @var {array} clicks
+       * @inner
+       * @memberof Tile.Engine.create
+       */
 			clicks = [],
+
+      /**
+       * An object that has custom utility methods as properties
+       * @constant {object} utils
+       * @inner
+       * @memberof Tile.Engine.create
+       * @default {}
+       */
 			utils = params.utils || {},
+
+      /**
+       * An array of custom states
+       * @var {array} states
+       * @inner
+       * @memberof Tile.Engine.create
+       * @default []
+       */
 			states = params.states || [],
-			events = options.events || { 
+
+      /**
+       * An object that has arrays of mouse input events as properties
+       * @var {array} events
+       * @inner
+       * @memberof Tile.Engine.create
+       * @default { click: [], mousemove: [] }
+       */
+			events = options.events || {
 				click: [],
 				mousemove: []
 			},
+
+      /**
+       * An object that has custom action methods as properties
+       * @var {array} actions
+       * @inner
+       * @memberof Tile.Engine.create
+       */
 			actions = { '*': {} },
+
+      /**
+       * The game's set frames-per-second
+       * @var {number} fps
+       * @inner
+       * @memberof Tile.Engine.create
+       * @default 60
+       */
 			fps = params.fps || 60,
+
+      /**
+       * The game's world, created by calling Tile.World.create
+       * @var {object} world
+       * @inner
+       * @memberof Tile.Engine.create
+       */
 			world = Tile.World.create({
 				width : params.world.width || view.width,
 				height : params.world.height || view.height,
-				types : params.types || { '*': {} }
+				types : params.types || { '*': {} },
+        generators: params.world.generators || function() {
+            throw new Error('No generation script(s) provided.');
+          }
 			});
 
 		// UI
@@ -263,7 +467,7 @@ Tile.Engine = {
 					}
 				});
 				e.preventDefault();
-			});         
+			});
 		});
 
 		// PUBLIC INTERFACE
@@ -331,7 +535,7 @@ Tile.Engine = {
 				$.extend(async,
 					{
 						init_generate: function(done) {
-							world.generate(function(){
+							world.generate(params.world.generators['*'], function(){
 								done();
 							});
 						},
