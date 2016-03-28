@@ -848,7 +848,7 @@ Tile.Engine = {
 				var self = this;
 				self.init(function(){
 					function sequence() {
-						self.render(world, undefined, wait === true ? true : false);
+						self.render(world, wait === true ? true : false);
 						window.requestAnimationFrame(sequence);
 					}
 					var running = window.requestAnimationFrame(sequence);
